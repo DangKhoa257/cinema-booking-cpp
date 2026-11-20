@@ -1,0 +1,2 @@
+# id|customerId|showtimeId|seatId|priceVnd|TicketStatus
+1|1|1|A1|50000|Pending

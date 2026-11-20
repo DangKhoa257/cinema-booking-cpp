@@ -1,0 +1,2 @@
+# id|title|durationMinutes|genre|basePriceVnd
+1|Phim Demo|90|Gia tuong|50000
