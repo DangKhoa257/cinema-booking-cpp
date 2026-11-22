@@ -8,7 +8,11 @@ namespace {
 bool isBlank(const std::string& value) {
     return value.find_first_not_of(" \t\n\r\f\v") == std::string::npos;
 }
+
+bool containsForbiddenFileCharacter(const std::string& value) {
+    return value.find_first_of("|\n\r") != std::string::npos;
 }
+}  // namespace
 
 Movie::Movie(int id, std::string title, int durationMinutes, std::string genre,
              long long basePriceVnd)
@@ -20,11 +24,17 @@ Movie::Movie(int id, std::string title, int durationMinutes, std::string genre,
     if (isBlank(title_)) {
         throw std::invalid_argument("Movie title must not be empty");
     }
+    if (containsForbiddenFileCharacter(title_)) {
+        throw std::invalid_argument("Movie title must not contain '|', '\\n' or '\\r'");
+    }
     if (durationMinutes_ <= 0) {
         throw std::invalid_argument("Movie duration must be greater than 0");
     }
     if (isBlank(genre_)) {
         throw std::invalid_argument("Movie genre must not be empty");
+    }
+    if (containsForbiddenFileCharacter(genre_)) {
+        throw std::invalid_argument("Movie genre must not contain '|', '\\n' or '\\r'");
     }
     if (basePriceVnd_ < 0) {
         throw std::invalid_argument("Movie base price must not be negative");
