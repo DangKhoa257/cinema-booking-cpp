@@ -50,8 +50,14 @@ int main() {
     CHECK(!m.addCustomer(Customer(4, "   ")));
     CHECK(!m.addCustomer(Customer(0, "ID khong")));
     CHECK(!m.addCustomer(Customer(-5, "ID am")));
+    // Ten chua ky tu cam: |, \n, \r
+    CHECK(!m.addCustomer(Customer(5, "Nguyen|Van A")));
+    CHECK(!m.addCustomer(Customer(6, "Nguyen\nVan A")));
+    CHECK(!m.addCustomer(Customer(7, "Nguyen\rVan A")));
+    CHECK(m.findCustomer(5) == nullptr);
+    CHECK(m.findCustomer(6) == nullptr);
+    CHECK(m.findCustomer(7) == nullptr);
     CHECK(m.getCustomers().size() == 2);
-
     if (failures == 0) std::cout << "All user tests passed\n";
     return failures == 0 ? 0 : 1;
 }
