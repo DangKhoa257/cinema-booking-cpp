@@ -1,8 +1,9 @@
 #pragma once
 
-#include "showtime.h"
 #include <string>
 #include <vector>
+
+#include "showtime.h"
 
 class ScheduleManager {
 public:
