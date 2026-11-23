@@ -21,6 +21,7 @@ bool isValidDateTime(const std::string& s) {
     int hour = std::stoi(s.substr(11, 2));
     int minute = std::stoi(s.substr(14, 2));
 
+    if (year < 1) return false;
     if (month < 1 || month > 12) return false;
     if (hour > 23 || minute > 59) return false;
 
