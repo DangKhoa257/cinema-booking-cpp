@@ -20,8 +20,9 @@ const Showtime* ScheduleManager::findShowtime(int id) const {
 
 bool ScheduleManager::hasRoomConflict(int roomId, const std::string& start,
                                       const std::string& end) const {
-    if (!isValidDateTime(start) || !isValidDateTime(end) || !(start < end)) {
-        return true;
+    if (roomId <= 0 || !isValidDateTime(start) || !isValidDateTime(end) ||
+        !(start < end)) {
+        return false;
     }
     for (const Showtime& s : showtimes_) {
         if (s.getRoomId() != roomId) continue;
