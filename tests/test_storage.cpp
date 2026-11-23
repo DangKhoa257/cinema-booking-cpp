@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <fstream>
 #include <iostream>
+#include <stdexcept>
 
 static void write(const std::string& p, const std::string& s) {
     std::ofstream(p, std::ios::binary) << s;
@@ -70,11 +71,27 @@ int main() {
     write(mp, "# c\r\n1|Phim Demo|90|Gia tuong|50000\r\n");
     assert(fs.loadMovies(mo, mp) && mo.size() == 1 && mo[0].getTitle() == "Phim Demo");
 
-    // Save tu choi ky tu '|' va khong pha file cu
-    assert(fs.saveMovies(movies, mp));
-    std::vector<Movie> badSave{Movie(3, "A|B", 90, "G", 1)};
-    assert(!fs.saveMovies(badSave, mp));
-    assert(fs.loadMovies(m2, mp) && m2.size() == 2);
+    // Movie (TV2) tu choi '|' ngay trong constructor -> khong the tao Movie sai de luu
+    bool threw = false;
+    try { Movie bad(3, "A|B", 90, "G", 1); } catch (const std::invalid_argument&) { threw = true; }
+    assert(threw);
+    assert(fs.saveMovies(movies, mp) && fs.loadMovies(m2, mp) && m2.size() == 2);
+
+    // File chua du lieu phim vi pham quy tac Movie: load tra false, khong thoat dot ngot, vector giu nguyen
+    const char* badMovies[] = {
+        "1|   |90|G|1000\n",        // title chi toan khoang trang -> Movie nem ngoai le
+        "1|Phim|90|   |1000\n",     // genre chi toan khoang trang
+        "1|Phim|abc|G|1000\n",      // thoi luong khong phai so
+        "1|Phim|90|G\n",            // thieu cot
+        "1|Phim|90|G|-1\n",         // gia am
+    };
+    for (const char* bad : badMovies) {
+        write(mp, bad);
+        std::vector<Movie> out{Movie(8, "Giu", 1, "G", 0)};
+        assert(!fs.loadMovies(out, mp));
+        assert(out.size() == 1 && out[0].getId() == 8);
+        assert(!fs.lastError().empty());
+    }
 
     std::remove(mp.c_str()); std::remove(tp.c_str());
     std::cout << "test_storage OK\n";

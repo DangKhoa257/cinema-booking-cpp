@@ -1,5 +1,6 @@
 #include "file_storage.h"
 #include <cctype>
+#include <exception>
 #include <filesystem>
 #include <fstream>
 #include <set>
@@ -151,7 +152,13 @@ bool FileStorage::loadMovies(std::vector<Movie>& movies, const std::string& path
         if (c[1].empty() || c[3].empty()) { lastError_ = lineErr(no, "title/genre rong"); return false; }
         if (!parseInt(c[2], dur) || dur <= 0) { lastError_ = lineErr(no, "thoi luong phai > 0"); return false; }
         if (!parseLongLong(c[4], price) || price < 0) { lastError_ = lineErr(no, "gia phai >= 0"); return false; }
-        result.emplace_back(id, c[1], dur, c[3], price);
+        try {
+            // Movie co the nem std::invalid_argument neu du lieu vi pham quy tac cua TV2
+            result.emplace_back(id, c[1], dur, c[3], price);
+        } catch (const std::exception& e) {
+            lastError_ = lineErr(no, std::string("phim khong hop le: ") + e.what());
+            return false;
+        }
     }
     movies = std::move(result);  // chi thay khi toan bo file hop le
     return true;
