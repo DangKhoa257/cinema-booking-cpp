@@ -29,4 +29,7 @@ int main() {
     check(m.findShowtime(1) != nullptr, "tim ID ton tai");
     check(m.findShowtime(999) == nullptr, "tim ID khong ton tai");
     check(!m.hasRoomConflict(1, "2026-12-05 10:00", "2026-12-05 12:00"), "hasRoomConflict: khong xung dot");
-    check(m.hasRoomConflict(1, "2026-12-01 10:30", "2026-12-01 11:30"), "hasRoomCon
+    check(m.hasRoomConflict(1, "2026-12-01 10:30", "2026-12-01 11:30"), "hasRoomConflict: xung dot");
+
+    return failures == 0 ? 0 : 1;
+}
