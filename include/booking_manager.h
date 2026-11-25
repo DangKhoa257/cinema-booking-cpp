@@ -19,6 +19,7 @@ public:
     bool bookTicket(int customerId, int showtimeId,
                     const std::string& seatId, Payment& payment);
     bool cancelTicket(int ticketId);
+    bool payTicket(int ticketId, Payment& payment);
     SeatStatus getSeatStatus(int showtimeId, const std::string& seatId) const;
 
 private:
