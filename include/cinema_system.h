@@ -21,6 +21,8 @@ private:
     void cancelTicket();
     void payTicket();
     void storageMenu();
+    bool saveAll(const std::string& directory);
+    bool loadAll(const std::string& directory);
 
     MovieCatalog movies_;
     std::vector<CinemaRoom> rooms_;

@@ -1,10 +1,13 @@
 #include "file_storage.h"
+#include "schedule_manager.h"
+#include "user_manager.h"
 #include <cctype>
 #include <exception>
 #include <filesystem>
 #include <fstream>
 #include <set>
 #include <sstream>
+#include <utility>
 
 namespace {
 
@@ -18,6 +21,17 @@ std::vector<std::string> splitBar(const std::string& line) {
     std::string cur;
     for (char c : line) {
         if (c == '|') { parts.push_back(cur); cur.clear(); }
+        else cur += c;
+    }
+    parts.push_back(cur);
+    return parts;
+}
+
+std::vector<std::string> splitComma(const std::string& line) {
+    std::vector<std::string> parts;
+    std::string cur;
+    for (char c : line) {
+        if (c == ',') { parts.push_back(cur); cur.clear(); }
         else cur += c;
     }
     parts.push_back(cur);
@@ -212,5 +226,148 @@ bool FileStorage::loadTickets(std::vector<Ticket>& tickets, const std::string& p
         }
     }
     tickets = std::move(result);
+    return true;
+}
+
+bool FileStorage::saveRooms(const std::vector<CinemaRoom>& rooms,
+                            const std::string& path) {
+    lastError_.clear();
+    std::ostringstream out;
+    out << "# roomId|name|seatId,seatId,...\n";
+    std::set<int> ids;
+    for (const CinemaRoom& room : rooms) {
+        if (room.getId() <= 0 || !ids.insert(room.getId()).second ||
+            room.getSeats().empty() || hasForbiddenChar(room.getName())) {
+            lastError_ = "Phong trung ID hoac du lieu khong hop le";
+            return false;
+        }
+        out << room.getId() << '|' << room.getName() << '|';
+        bool first = true;
+        for (const Seat& seat : room.getSeats()) {
+            if (!first) out << ',';
+            out << seat.getSeatId();
+            first = false;
+        }
+        out << '\n';
+    }
+    return atomicWrite(path, out.str(), lastError_);
+}
+
+bool FileStorage::loadRooms(std::vector<CinemaRoom>& rooms,
+                            const std::string& path) {
+    lastError_.clear();
+    std::vector<std::pair<int, std::string>> lines;
+    if (!readDataLines(path, lines, lastError_)) return false;
+    std::vector<CinemaRoom> result;
+    std::set<int> ids;
+    for (const auto& [lineNo, line] : lines) {
+        const auto fields = splitBar(line);
+        int id = 0;
+        if (fields.size() != 3 || !parseInt(fields[0], id) || id <= 0 ||
+            !ids.insert(id).second || fields[2].empty()) {
+            lastError_ = lineErr(lineNo, "cot hoac ID phong khong hop le");
+            return false;
+        }
+        std::vector<Seat> seats;
+        for (const std::string& seatId : splitComma(fields[2])) {
+            int number = 0;
+            if (!validSeatId(seatId) || !parseInt(seatId.substr(1), number) ||
+                number <= 0 || seatId.substr(1) != std::to_string(number)) {
+                lastError_ = lineErr(lineNo, "seatId khong hop le");
+                return false;
+            }
+            seats.emplace_back(seatId[0], number);
+        }
+        try {
+            result.emplace_back(id, fields[1], std::move(seats));
+        } catch (const std::exception& error) {
+            lastError_ = lineErr(lineNo, error.what());
+            return false;
+        }
+    }
+    rooms = std::move(result);
+    return true;
+}
+
+bool FileStorage::saveShowtimes(const std::vector<Showtime>& showtimes,
+                                const std::string& path) {
+    lastError_.clear();
+    ScheduleManager checked;
+    std::ostringstream out;
+    out << "# id|movieId|roomId|startTime|endTime|priceVnd\n";
+    for (const Showtime& showtime : showtimes) {
+        if (!checked.addShowtime(showtime)) {
+            lastError_ = "Suat chieu trung ID, sai thoi gian hoac xung dot phong";
+            return false;
+        }
+        out << showtime.getId() << '|' << showtime.getMovieId() << '|'
+            << showtime.getRoomId() << '|' << showtime.getStartTime() << '|'
+            << showtime.getEndTime() << '|' << showtime.getPriceVnd() << '\n';
+    }
+    return atomicWrite(path, out.str(), lastError_);
+}
+
+bool FileStorage::loadShowtimes(std::vector<Showtime>& showtimes,
+                                const std::string& path) {
+    lastError_.clear();
+    std::vector<std::pair<int, std::string>> lines;
+    if (!readDataLines(path, lines, lastError_)) return false;
+    std::vector<Showtime> result;
+    ScheduleManager checked;
+    for (const auto& [lineNo, line] : lines) {
+        const auto fields = splitBar(line);
+        int id = 0, movieId = 0, roomId = 0;
+        long long price = 0;
+        if (fields.size() != 6 || !parseInt(fields[0], id) ||
+            !parseInt(fields[1], movieId) || !parseInt(fields[2], roomId) ||
+            !parseLongLong(fields[5], price)) {
+            lastError_ = lineErr(lineNo, "cot hoac so khong hop le");
+            return false;
+        }
+        Showtime showtime(id, movieId, roomId, fields[3], fields[4], price);
+        if (!checked.addShowtime(showtime)) {
+            lastError_ = lineErr(lineNo, "suat chieu sai, trung ID hoac xung dot phong");
+            return false;
+        }
+        result.push_back(showtime);
+    }
+    showtimes = std::move(result);
+    return true;
+}
+
+bool FileStorage::saveCustomers(const std::vector<Customer>& customers,
+                                const std::string& path) {
+    lastError_.clear();
+    UserManager checked;
+    std::ostringstream out;
+    out << "# id|name\n";
+    for (const Customer& customer : customers) {
+        if (!checked.addCustomer(customer)) {
+            lastError_ = "Khach trung ID hoac ten khong hop le";
+            return false;
+        }
+        out << customer.getId() << '|' << customer.getName() << '\n';
+    }
+    return atomicWrite(path, out.str(), lastError_);
+}
+
+bool FileStorage::loadCustomers(std::vector<Customer>& customers,
+                                const std::string& path) {
+    lastError_.clear();
+    std::vector<std::pair<int, std::string>> lines;
+    if (!readDataLines(path, lines, lastError_)) return false;
+    std::vector<Customer> result;
+    UserManager checked;
+    for (const auto& [lineNo, line] : lines) {
+        const auto fields = splitBar(line);
+        int id = 0;
+        if (fields.size() != 2 || !parseInt(fields[0], id) ||
+            !checked.addCustomer(Customer(id, fields[1]))) {
+            lastError_ = lineErr(lineNo, "khach trung ID hoac du lieu khong hop le");
+            return false;
+        }
+        result.emplace_back(id, fields[1]);
+    }
+    customers = std::move(result);
     return true;
 }

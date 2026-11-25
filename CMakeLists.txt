@@ -22,13 +22,12 @@ if(BUILD_TESTING)
     target_link_libraries(smoke_test PRIVATE cinema_core)
     add_test(NAME smoke_test COMMAND smoke_test)
 
-    foreach(test_name test_movie test_room test_users test_ticket_payment test_storage test_booking)
+    foreach(test_name test_movie test_room test_users test_ticket_payment test_storage test_booking test_storage_extended)
         add_executable(${test_name} tests/${test_name}.cpp)
         target_link_libraries(${test_name} PRIVATE cinema_core)
         add_test(NAME ${test_name} COMMAND ${test_name})
     endforeach()
 
-    # PR TV4 chua merge vao main; bai test nay se duoc dang ky khi file co mat.
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_schedule.cpp")
         add_executable(test_schedule tests/test_schedule.cpp)
         target_link_libraries(test_schedule PRIVATE cinema_core)
@@ -40,4 +39,10 @@ if(BUILD_TESTING)
             "-DAPP=$<TARGET_FILE:cinema_booking>"
             "-DINPUT=${CMAKE_CURRENT_SOURCE_DIR}/tests/console_input.txt"
             -P "${CMAKE_CURRENT_SOURCE_DIR}/tests/console_flow.cmake")
+
+    add_test(NAME persistence_flow
+        COMMAND ${CMAKE_COMMAND}
+            "-DAPP=$<TARGET_FILE:cinema_booking>"
+            "-DDATA_DIR=${CMAKE_CURRENT_BINARY_DIR}/persistence_data"
+            -P "${CMAKE_CURRENT_SOURCE_DIR}/tests/persistence_flow.cmake")
 endif()
