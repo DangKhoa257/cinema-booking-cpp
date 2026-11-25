@@ -1,18 +1,36 @@
 #include "schedule_manager.h"
 
-bool ScheduleManager::addShowtime(const Showtime&) {
-    // TODO(TV4): Kiem tra ID, phim, phong va xung dot lich.
-    return false;
+bool ScheduleManager::addShowtime(const Showtime& showtime) {
+    if (!showtime.isValid()) return false;
+    if (findShowtime(showtime.getId()) != nullptr) return false;
+    if (hasRoomConflict(showtime.getRoomId(), showtime.getStartTime(),
+                        showtime.getEndTime())) {
+        return false;
+    }
+    showtimes_.push_back(showtime);
+    return true;
 }
-const Showtime* ScheduleManager::findShowtime(int) const {
-    // TODO(TV4): Tim suat chieu theo ID.
+
+const Showtime* ScheduleManager::findShowtime(int id) const {
+    for (const Showtime& s : showtimes_) {
+        if (s.getId() == id) return &s;
+    }
     return nullptr;
 }
-bool ScheduleManager::hasRoomConflict(int, const std::string&,
-                                      const std::string&) const {
-    // TODO(TV4): Kiem tra hai khoang thoi gian giao nhau.
+
+bool ScheduleManager::hasRoomConflict(int roomId, const std::string& start,
+                                      const std::string& end) const {
+    if (roomId <= 0 || !isValidDateTime(start) || !isValidDateTime(end) ||
+        !(start < end)) {
+        return false;
+    }
+    for (const Showtime& s : showtimes_) {
+        if (s.getRoomId() != roomId) continue;
+        if (s.getStartTime() < end && start < s.getEndTime()) return true;
+    }
     return false;
 }
+
 const std::vector<Showtime>& ScheduleManager::getShowtimes() const {
     return showtimes_;
 }

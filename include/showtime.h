@@ -2,6 +2,8 @@
 
 #include <string>
 
+bool isValidDateTime(const std::string& s);
+
 class Showtime {
 public:
     Showtime(int id, int movieId, int roomId, std::string startTime,
@@ -12,6 +14,7 @@ public:
     const std::string& getStartTime() const;
     const std::string& getEndTime() const;
     long long getPriceVnd() const;
+    bool isValid() const;
 
 private:
     int id_;
