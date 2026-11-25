@@ -57,6 +57,8 @@ Giai đoạn 2 bổ sung: `bool saveRooms(const std::vector<CinemaRoom>&, const 
 
 `include/cinema_data_store.h` — API điều phối mới của TV1, không sửa API TV2–TV6: `bool saveAll(const MovieCatalog&, const std::vector<CinemaRoom>&, const ScheduleManager&, const UserManager&, const std::vector<Ticket>&, const std::string& directory, std::string& error)`; `bool loadAll(MovieCatalog&, std::vector<CinemaRoom>&, ScheduleManager&, UserManager&, std::vector<Ticket>&, const std::string& directory, std::string& error)`. `CinemaSystem` và Qt `UiSession` đều gọi lớp này. Hàm tải đọc năm file tạm, kiểm tra ID và tham chiếu `Showtime -> Movie/Room`, `Ticket -> Customer/Showtime/Seat`, giá vé và ghế đang hoạt động, rồi mới thay toàn bộ bộ nhớ. File thiếu/sai hoặc tham chiếu sai giữ nguyên dữ liệu đang chạy. `error` rỗng khi thành công, có lý do khi thất bại. `BookingManager` vẫn giữ tham chiếu tới các đối tượng thành viên của owner sau khi tải.
 
+Giai đoạn 3C giữ nguyên chữ ký trên. `saveAll` ghi vào `.cinema-next`, tự tải/kiểm tra lại, sao lưu bộ file cũ vào `.cinema-backup` rồi thay file chính. File cũ thiếu một phần bị từ chối ghi đè tự động. Nếu thay thế lỗi, hàm cố phục hồi bộ cũ; vì năm file vẫn thay lần lượt, bản sao lưu cần được giữ để xử lý trường hợp mất điện giữa chừng. `loadAll` vẫn chỉ thay dữ liệu bộ nhớ sau khi cả năm file hợp lệ.
+
 ## Dữ liệu file dự kiến
 
 File UTF-8, một record mỗi dòng, ký tự `|` phân cách, không có escape. Tên/genre không chứa `|` hoặc xuống dòng. Dòng rỗng và dòng bắt đầu `#` được bỏ qua; không có header bắt buộc. Mã trạng thái ghi đúng tên enum bằng tiếng Anh. TV6 kiểm tra số cột, số nguyên, enum và ID khi tải phim/vé. Không dùng `operator<<` làm serializer.

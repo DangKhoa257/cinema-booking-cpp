@@ -3,8 +3,32 @@
 #include <filesystem>
 #include <set>
 #include <utility>
+#include <array>
 
 namespace {
+constexpr std::array<const char*, 5> dataFiles = {
+    "movies.txt", "rooms.txt", "showtimes.txt", "customers.txt", "tickets.txt"};
+
+// Keep the previous complete set until all five new files are installed.
+// A failed replacement restores the previous files from this directory.
+bool restoreFiles(const std::filesystem::path& root,
+                  const std::filesystem::path& backup,
+                  const std::array<bool, 5>& existed, std::string& error) {
+    bool restored = true;
+    for (size_t i = 0; i < dataFiles.size(); ++i) {
+        std::error_code ec;
+        std::filesystem::remove(root / dataFiles[i], ec);
+        if (ec) restored = false;
+        ec.clear();
+        if (existed[i])
+            std::filesystem::copy_file(backup / dataFiles[i], root / dataFiles[i],
+                ec);
+        if (ec) restored = false;
+    }
+    if (!restored) error += " Khong khoi phuc duoc tat ca file; xem thu muc .cinema-backup.";
+    return restored;
+}
+
 bool validReferences(const MovieCatalog& movies,
                      const std::vector<CinemaRoom>& rooms,
                      const ScheduleManager& schedule, const UserManager& users,
@@ -62,14 +86,60 @@ bool CinemaDataStore::saveAll(const MovieCatalog& movies,
         const auto root = std::filesystem::u8path(directory);
         std::filesystem::create_directories(root, ec);
         if (ec) { error = "Khong tao duoc thu muc: " + ec.message(); return false; }
-        if (!storage_.saveMovies(movies.getMovies(), (root / "movies.txt").u8string()) ||
-            !storage_.saveRooms(rooms, (root / "rooms.txt").u8string()) ||
-            !storage_.saveShowtimes(schedule.getShowtimes(), (root / "showtimes.txt").u8string()) ||
-            !storage_.saveCustomers(users.getCustomers(), (root / "customers.txt").u8string()) ||
-            !storage_.saveTickets(tickets, (root / "tickets.txt").u8string())) {
+        const auto staging = root / ".cinema-next";
+        const auto backup = root / ".cinema-backup";
+        std::filesystem::remove_all(staging, ec);
+        if (ec) { error = "Khong don duoc vung ghi tam: " + ec.message(); return false; }
+        std::filesystem::create_directory(staging, ec);
+        if (ec) { error = "Khong tao duoc vung ghi tam: " + ec.message(); return false; }
+        if (!storage_.saveMovies(movies.getMovies(), (staging / "movies.txt").u8string()) ||
+            !storage_.saveRooms(rooms, (staging / "rooms.txt").u8string()) ||
+            !storage_.saveShowtimes(schedule.getShowtimes(), (staging / "showtimes.txt").u8string()) ||
+            !storage_.saveCustomers(users.getCustomers(), (staging / "customers.txt").u8string()) ||
+            !storage_.saveTickets(tickets, (staging / "tickets.txt").u8string())) {
             error = storage_.lastError();
             return false;
         }
+        // Some individual save APIs do not reject every character that their
+        // matching loader rejects. Verify the complete staged set before use.
+        MovieCatalog checkedMovies;
+        std::vector<CinemaRoom> checkedRooms;
+        ScheduleManager checkedSchedule;
+        UserManager checkedUsers;
+        std::vector<Ticket> checkedTickets;
+        if (!loadAll(checkedMovies, checkedRooms, checkedSchedule, checkedUsers,
+                     checkedTickets, staging.u8string(), error)) return false;
+        std::array<bool, 5> existed{};
+        for (size_t i = 0; i < dataFiles.size(); ++i) {
+            existed[i] = std::filesystem::exists(root / dataFiles[i]);
+            if (!existed[i]) {
+                // A partial old set is kept intact until the user repairs it.
+                for (const char* name : dataFiles)
+                    if (std::filesystem::exists(root / name)) {
+                        error = "Ban luu cu thieu file; khong tu ghi de.";
+                        return false;
+                    }
+            }
+        }
+        std::filesystem::remove_all(backup, ec);
+        if (ec) { error = "Khong don duoc ban sao luu: " + ec.message(); return false; }
+        std::filesystem::create_directory(backup, ec);
+        if (ec) { error = "Khong tao duoc ban sao luu: " + ec.message(); return false; }
+        for (size_t i = 0; i < dataFiles.size(); ++i) {
+            if (!existed[i]) continue;
+            std::filesystem::copy_file(root / dataFiles[i], backup / dataFiles[i], ec);
+            if (ec) { error = "Sao luu that bai: " + ec.message(); return false; }
+        }
+        for (const char* name : dataFiles) {
+            std::filesystem::remove(root / name, ec);
+            if (!ec) std::filesystem::copy_file(staging / name, root / name, ec);
+            if (ec) {
+                error = "Thay ban luu that bai: " + ec.message();
+                restoreFiles(root, backup, existed, error);
+                return false;
+            }
+        }
+        std::filesystem::remove_all(staging, ec); // A cleanup failure does not invalidate the save.
         return true;
     } catch (const std::exception& ex) {
         error = std::string("Duong dan luu khong hop le: ") + ex.what();
