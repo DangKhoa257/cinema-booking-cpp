@@ -1,6 +1,6 @@
-# Cinema Booking C++ — Giai đoạn 0
+# Cinema Booking C++ — tích hợp TV1
 
-Skeleton C++17 cho bài tập lớn OOP của nhóm 6 thành viên. Ứng dụng console hiện chỉ in thông báo khởi tạo. Các thao tác đặt vé, quản lý phim, ghế, lịch, người dùng, thanh toán và lưu file chưa được triển khai.
+Ứng dụng console C++17 cho bài tập lớn OOP của nhóm 6 thành viên. Có dữ liệu demo để xem phim, suất, phòng/ghế; đăng ký khách, đặt/hủy vé, thanh toán mô phỏng và lưu/tải phim hoặc vé. Chuyển khoản demo luôn giữ vé `Pending`, không xác nhận đã nhận tiền thật.
 
 ## Build và chạy
 
@@ -12,6 +12,8 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-Chạy `build/cinema_booking` trên Linux hoặc `build/cinema_booking.exe` trên Windows (đường dẫn có thể khác nếu dùng generator nhiều cấu hình).
+Chạy `build/cinema_booking` trên Linux hoặc `build/cinema_booking.exe` trên Windows (đường dẫn có thể khác nếu dùng generator nhiều cấu hình). Khách demo có ID 1; cùng ghế A1 có thể đặt ở hai suất demo khác nhau. Menu lưu/tải hiện dùng API `FileStorage` cho phim và vé; dữ liệu phòng, lịch và khách chỉ có trong phiên chạy. Đường dẫn mặc định là `build/movies_saved.txt` và `build/tickets_saved.txt`.
+
+Branch tích hợp TV1 đang chứa ba commit TV4 được cherry-pick từ PR #3 **chưa merge**; cần thống nhất thứ tự merge với TV4 trước khi đưa branch này vào `main`.
 
 Đọc [hợp đồng API](docs/API_CONTRACT.md), [kiến trúc](docs/ARCHITECTURE.md) và [quy trình nhóm](docs/TEAM_WORKFLOW.md) trước khi viết chức năng. Không sửa public API một mình.
