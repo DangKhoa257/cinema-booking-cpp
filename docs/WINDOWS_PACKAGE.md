@@ -2,7 +2,7 @@
 
 ## Build và test
 
-Cài Qt 6 `mingw_64`, MinGW 13.1.0 đi kèm Qt, CMake và Ninja. Ví dụ local dưới đây dùng Qt 6.12.0; workflow Windows dùng Qt 6.11.2 vì kho cài trực tuyến của 6.12.0 không tải được metadata trong runner tại lần thử đầu. Chạy PowerShell trong repository:
+Cài Qt 6 `mingw_64`, MinGW 13.1.0 đi kèm Qt, CMake và Ninja. Ví dụ local dưới đây dùng Qt 6.12.0; workflow Windows dùng Qt 6.9.3 vì `aqtinstall` 3.3.0 trên runner chưa đọc được cấu trúc metadata mới của Qt 6.11/6.12. Chạy PowerShell trong repository:
 
 ```powershell
 cmake -S . -B build-qt-release -G Ninja -DBUILD_QT_GUI=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=C:/Qt/6.12.0/mingw_64 -DCMAKE_CXX_COMPILER=C:/Qt/Tools/mingw1310_64/bin/g++.exe

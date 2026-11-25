@@ -13,7 +13,7 @@ jobs:
       - name: Install Qt and matching MinGW
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.11.2'
+          version: '6.9.3'
           host: windows
           target: desktop
           arch: win64_mingw
