@@ -2,6 +2,7 @@
 
 #include <QFrame>
 #include <QLabel>
+#include <QLocale>
 #include <QVBoxLayout>
 
 inline QLabel* mutedLabel(const QString& text, QWidget* parent = nullptr) {
@@ -9,6 +10,10 @@ inline QLabel* mutedLabel(const QString& text, QWidget* parent = nullptr) {
     label->setObjectName("muted");
     label->setWordWrap(true);
     return label;
+}
+
+inline QString vnd(long long amount) {
+    return QLocale(QLocale::Vietnamese, QLocale::Vietnam).toString(amount) + " VND";
 }
 
 inline QFrame* card(QWidget* parent = nullptr) {

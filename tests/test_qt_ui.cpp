@@ -1,9 +1,16 @@
 #include "main_window.h"
 #include <QApplication>
 #include <QComboBox>
-#include <QPushButton>
 #include <QLabel>
-#include <cassert>
+#include <QPushButton>
+#include <QScrollArea>
+#include <QScrollBar>
+#include <QTemporaryDir>
+#include <stdexcept>
+#include <iostream>
+
+#define CHECK(condition) do { if (!(condition)) throw std::runtime_error( \
+    std::string("Line ") + std::to_string(__LINE__) + ": " + #condition); } while (false)
 
 static QPushButton* seatButton(MainWindow& window, const QString& id) {
     for (QPushButton* button : window.findChildren<QPushButton*>("seat"))
@@ -11,56 +18,121 @@ static QPushButton* seatButton(MainWindow& window, const QString& id) {
     return nullptr;
 }
 
+static QPushButton* buttonWithId(QWidget* parent, const char* name,
+                                  const char* property, int id) {
+    for (QPushButton* button : parent->findChildren<QPushButton*>(name))
+        if (button->isVisible() && button->property(property).toInt() == id) return button;
+    return nullptr;
+}
+
 int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
-    MainWindow window;
-    assert(window.currentPage() == 0);
-    window.show();
-    app.processEvents();
-    if (qEnvironmentVariableIsSet("CINEMA_QT_HOME_SCREENSHOT"))
-        assert(window.grab().save(qEnvironmentVariable("CINEMA_QT_HOME_SCREENSHOT")));
-    const char* pages[] = {"homePage", "showtimePage", "seatMapPage",
-                           "customerPage", "ticketPage", "paymentPage"};
-    for (int i = 0; i < 6; ++i) {
-        window.showPage(i);
-        assert(window.currentPage() == i);
-        assert(window.findChild<QWidget*>(pages[i]) != nullptr);
-    }
-    window.showPage(2);
-    auto* showtime = window.findChild<QComboBox*>("showtimeSelect");
-    auto* customer = window.findChild<QComboBox*>("customerSelect");
-    assert(showtime && showtime->count() == 2);
-    assert(customer && customer->count() == 1);
-    assert(window.findChildren<QPushButton*>("seat").size() == 4);
-    app.processEvents();
-    if (qEnvironmentVariableIsSet("CINEMA_QT_SCREENSHOT"))
-        assert(window.grab().save(qEnvironmentVariable("CINEMA_QT_SCREENSHOT")));
+    try {
+        QTemporaryDir temporary;
+        CHECK(temporary.isValid());
+        MainWindow window(temporary.path() + "/cinema");
+        window.show();
+        app.processEvents();
+        CHECK(window.currentPage() == 0);
+        if (qEnvironmentVariableIsSet("CINEMA_QT_HOME_SCREENSHOT"))
+            CHECK(window.grab().save(qEnvironmentVariable("CINEMA_QT_HOME_SCREENSHOT")));
 
-    auto* seat = seatButton(window, "A1");
-    auto* book = window.findChild<QPushButton*>("bookButton");
-    assert(seat && book);
-    seat->click();
-    // Chon chuyen khoan demo: ve duoc tao Pending, khong duoc tu xac nhan.
-    auto* bookingMethod = window.findChild<QComboBox*>("bookingMethodSelect");
-    assert(bookingMethod);
-    bookingMethod->setCurrentIndex(1);
-    book->click();
-    app.processEvents();
-    assert(seatButton(window, "A1") && !seatButton(window, "A1")->isEnabled());
-    window.showPage(5);
-    auto* pending = window.findChild<QComboBox*>("pendingTicketSelect");
-    assert(pending && pending->count() == 1);
-    auto* paymentPage = window.findChild<QWidget*>("paymentPage");
-    for (QPushButton* button : paymentPage->findChildren<QPushButton*>())
-        if (button->text() == "Xử lý") button->click();
-    app.processEvents();
-    assert(pending->count() == 0);
-    window.showPage(4);
-    auto* ticketPage = window.findChild<QWidget*>("ticketPage");
-    for (QPushButton* button : ticketPage->findChildren<QPushButton*>())
-        if (button->text() == "Hủy vé") button->click();
-    app.processEvents();
-    window.showPage(2);
-    assert(seatButton(window, "A1") && seatButton(window, "A1")->isEnabled());
-    return 0;
+        auto* movie = buttonWithId(&window, "movieButton", "movieId", 2);
+        CHECK(movie != nullptr);
+        movie->click();
+        CHECK(window.currentPage() == 1);
+        auto* showPage = window.findChild<QWidget*>("showtimePage");
+        CHECK(showPage != nullptr);
+        int visibleShows = 0;
+        for (QPushButton* button : showPage->findChildren<QPushButton*>("showtimeButton"))
+            if (button->isVisible()) ++visibleShows;
+        CHECK(visibleShows == 1);
+        auto* show = buttonWithId(showPage, "showtimeButton", "showtimeId", 2);
+        CHECK(show != nullptr);
+        show->click();
+        CHECK(window.currentPage() == 2);
+        auto* showtime = window.findChild<QComboBox*>("showtimeSelect");
+        auto* customer = window.findChild<QComboBox*>("customerSelect");
+        auto* room = window.findChild<QLabel*>("roomName");
+        auto* confirmation = window.findChild<QLabel*>("bookingConfirmation");
+        auto* book = window.findChild<QPushButton*>("bookButton");
+        CHECK(showtime && showtime->currentData().toInt() == 2);
+        CHECK(customer && customer->currentData().toInt() == 1);
+        CHECK(room && room->text().contains("Phòng Demo"));
+        CHECK(book && !book->isEnabled());
+        auto* seat = seatButton(window, "A1");
+        CHECK(seat && seat->isEnabled());
+        seat->click();
+        CHECK(book->isEnabled());
+        CHECK(confirmation && confirmation->text().contains("Phim Thứ Hai") &&
+              confirmation->text().contains("2026-12-01 21:00") &&
+              confirmation->text().contains("A1") &&
+              confirmation->text().contains("Khách Demo") &&
+              confirmation->text().contains("VND"));
+        if (qEnvironmentVariableIsSet("CINEMA_QT_SCREENSHOT")) {
+            app.processEvents();
+            CHECK(window.grab().save(qEnvironmentVariable("CINEMA_QT_SCREENSHOT")));
+        }
+        window.resize(860, 620);
+        app.processEvents();
+        CHECK(window.width() == 860 && window.height() == 620);
+        CHECK(window.findChildren<QScrollArea*>()[2]->verticalScrollBar()->maximum() > 0);
+        if (qEnvironmentVariableIsSet("CINEMA_QT_SMALL_SCREENSHOT"))
+            CHECK(window.grab().save(qEnvironmentVariable("CINEMA_QT_SMALL_SCREENSHOT")));
+        window.resize(1120, 760);
+        auto* bookingMethod = window.findChild<QComboBox*>("bookingMethodSelect");
+        CHECK(bookingMethod);
+        bookingMethod->setCurrentIndex(1);  // chuyen khoan demo
+        book->click();
+        app.processEvents();
+        CHECK(window.currentPage() == 4);
+        CHECK(window.findChild<QLabel*>("saveStatus")->text().contains("Chưa lưu"));
+        window.showPage(2);
+        CHECK(seatButton(window, "A1") && !seatButton(window, "A1")->isEnabled());
+        CHECK(seatButton(window, "A1")->property("seatState") == "held");
+        CHECK(!book->isEnabled());
+        showtime->setCurrentIndex(showtime->findData(1));
+        app.processEvents();
+        CHECK(seatButton(window, "A1") && seatButton(window, "A1")->isEnabled());
+        showtime->setCurrentIndex(showtime->findData(2));
+        app.processEvents();
+        CHECK(!seatButton(window, "A1")->isEnabled());
+
+        window.showPage(5);
+        auto* pending = window.findChild<QComboBox*>("pendingTicketSelect");
+        auto* paymentPage = window.findChild<QWidget*>("paymentPage");
+        CHECK(pending && pending->count() == 1 && paymentPage);
+        QPushButton* pay = nullptr;
+        for (QPushButton* button : paymentPage->findChildren<QPushButton*>())
+            if (button->text() == "Xử lý") pay = button;
+        CHECK(pay);
+        pay->click();  // DemoPayment: Pending -> Paid
+        CHECK(pending->count() == 0);
+        window.showPage(2);
+        CHECK(seatButton(window, "A1")->property("seatState") == "booked");
+        window.showPage(4);
+        auto* ticketPage = window.findChild<QWidget*>("ticketPage");
+        QPushButton* cancel = nullptr;
+        for (QPushButton* button : ticketPage->findChildren<QPushButton*>())
+            if (button->text() == "Hủy vé") cancel = button;
+        CHECK(cancel);
+        cancel->click();
+        app.processEvents();
+        window.showPage(2);
+        CHECK(seatButton(window, "A1") && seatButton(window, "A1")->isEnabled());
+        CHECK(seatButton(window, "A1")->property("seatState") == "available");
+        CHECK(window.saveData());
+        CHECK(window.findChild<QLabel*>("saveStatus")->text().contains("Đã lưu"));
+        const QString unicodePath = temporary.path() + "/Dữ liệu";
+        MainWindow unicodeSession(unicodePath);
+        CHECK(unicodeSession.saveData());
+        CHECK(unicodeSession.saveData());
+        MainWindow restored(unicodePath);
+        CHECK(restored.findChild<QLabel*>("saveStatus")->text().contains("Đã lưu"));
+        std::cout << "test_qt_ui OK\n";
+        return 0;
+    } catch (const std::exception& error) {
+        std::cerr << "test_qt_ui failed: " << error.what() << '\n';
+        return 1;
+    }
 }

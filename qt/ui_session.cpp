@@ -19,7 +19,9 @@ SeatStatus UiSession::seatStatus(int showtimeId, const std::string& seatId) cons
 }
 
 bool UiSession::addCustomer(int id, const std::string& name) {
-    return users_.addCustomer(Customer(id, name));
+    if (!users_.addCustomer(Customer(id, name))) return false;
+    dirty_ = true;
+    return true;
 }
 
 int UiSession::book(int customerId, int showtimeId, const std::string& seatId,
@@ -29,6 +31,7 @@ int UiSession::book(int customerId, int showtimeId, const std::string& seatId,
     Payment& method = demoPayment ? static_cast<Payment&>(demo) :
                                   static_cast<Payment&>(transfer);
     if (!booking_.bookTicket(customerId, showtimeId, seatId, method)) return 0;
+    dirty_ = true;
     return tickets_.back().getId();
 }
 
@@ -37,7 +40,27 @@ bool UiSession::pay(int ticketId, bool demoPayment) {
     BankTransferPayment transfer;
     Payment& method = demoPayment ? static_cast<Payment&>(demo) :
                                   static_cast<Payment&>(transfer);
-    return booking_.payTicket(ticketId, method);
+    const bool paid = booking_.payTicket(ticketId, method);
+    if (paid) dirty_ = true;
+    return paid;
 }
 
-bool UiSession::cancel(int ticketId) { return booking_.cancelTicket(ticketId); }
+bool UiSession::cancel(int ticketId) {
+    const bool cancelled = booking_.cancelTicket(ticketId);
+    if (cancelled) dirty_ = true;
+    return cancelled;
+}
+
+bool UiSession::save(const std::string& directory) {
+    const bool ok = dataStore_.saveAll(movies_, rooms_, schedule_, users_, tickets_,
+                                       directory, lastError_);
+    if (ok) dirty_ = false;
+    return ok;
+}
+
+bool UiSession::load(const std::string& directory) {
+    const bool ok = dataStore_.loadAll(movies_, rooms_, schedule_, users_, tickets_,
+                                       directory, lastError_);
+    if (ok) dirty_ = false;
+    return ok;
+}

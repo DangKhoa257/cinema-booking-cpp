@@ -21,4 +21,6 @@ TV2–TV6 đã triển khai các module trên `main`, bao gồm TV4 qua PR #3; T
 
 Giai đoạn 3A thêm ứng dụng Qt Widgets tùy chọn (`cinema_booking_qt`) trên cùng thư viện `cinema_core`; chương trình console vẫn là target độc lập. Các trang Qt chỉ hiển thị và thu thập đầu vào, `UiSession` chuyển yêu cầu nghiệp vụ đến các manager hiện có. Chi tiết cấu trúc GUI và phạm vi hiện tại ở [QT_UI.md](QT_UI.md).
 
+Giai đoạn 3B gom việc lưu/tải năm file và kiểm tra tham chiếu vào `CinemaDataStore` thuộc TV1 trong `cinema_core`. `CinemaSystem` và `UiSession` dùng cùng lớp đó. GUI không có bản sao của quy tắc tải hoặc đặt vé; khi tải lỗi, cả hai giữ nguyên dữ liệu đang dùng. Qt dùng `QStandardPaths::AppDataLocation` cho thư mục mặc định và hiển thị trạng thái thay đổi chưa lưu.
+
 `Seat` và `CinemaRoom` chỉ mô tả vị trí vật lý. Trạng thái đặt ghế được suy ra từ `Ticket` theo cặp `(showtimeId, seatId)` trong `BookingManager`: Pending là Held, Paid là Booked, Cancelled không giữ ghế. TV1 kiểm tra ghế thuộc phòng của suất và từ chối cặp đã Held/Booked trước khi tạo vé. Cùng vị trí ghế có thể được dùng độc lập ở các suất khác nhau. Khi đặt, TV1 tạo Pending trước khi gọi `Payment`; chỉ kết quả demo thành công mới chuyển sang Paid. `payTicket` cho phép xử lý lại vé Pending. Hủy chuyển vé sang Cancelled, nhờ vậy ghế lại Available.

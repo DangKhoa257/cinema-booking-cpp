@@ -233,72 +233,19 @@ void CinemaSystem::storageMenu() {
 }
 
 bool CinemaSystem::saveAll(const std::string& directory) {
-    std::error_code error;
-    std::filesystem::create_directories(directory, error);
-    if (error) {
-        std::cout << "Khong tao duoc thu muc: " << error.message() << '\n';
-        return false;
-    }
-    const std::filesystem::path root(directory);
-    return storage_.saveMovies(movies_.getMovies(), (root / "movies.txt").string()) &&
-           storage_.saveRooms(rooms_, (root / "rooms.txt").string()) &&
-           storage_.saveShowtimes(schedule_.getShowtimes(),
-                                  (root / "showtimes.txt").string()) &&
-           storage_.saveCustomers(users_.getCustomers(),
-                                  (root / "customers.txt").string()) &&
-           storage_.saveTickets(tickets_, (root / "tickets.txt").string());
+    std::string error;
+    const bool ok = dataStore_.saveAll(movies_, rooms_, schedule_, users_, tickets_,
+                                       directory, error);
+    if (!ok) std::cout << error << '\n';
+    return ok;
 }
 
 bool CinemaSystem::loadAll(const std::string& directory) {
-    const std::filesystem::path root(directory);
-    std::vector<Movie> movies;
-    std::vector<CinemaRoom> rooms;
-    std::vector<Showtime> showtimes;
-    std::vector<Customer> customers;
-    std::vector<Ticket> tickets;
-    if (!storage_.loadMovies(movies, (root / "movies.txt").string()) ||
-        !storage_.loadRooms(rooms, (root / "rooms.txt").string()) ||
-        !storage_.loadShowtimes(showtimes, (root / "showtimes.txt").string()) ||
-        !storage_.loadCustomers(customers, (root / "customers.txt").string()) ||
-        !storage_.loadTickets(tickets, (root / "tickets.txt").string())) return false;
-
-    MovieCatalog newMovies;
-    ScheduleManager newSchedule;
-    UserManager newUsers;
-    for (const Movie& movie : movies) newMovies.addMovie(movie);
-    for (const Customer& customer : customers) newUsers.addCustomer(customer);
-    for (const Showtime& showtime : showtimes) {
-        bool roomExists = false;
-        for (const CinemaRoom& room : rooms)
-            if (room.getId() == showtime.getRoomId()) roomExists = true;
-        if (!newMovies.findMovie(showtime.getMovieId()) || !roomExists ||
-            !newSchedule.addShowtime(showtime)) {
-            std::cout << "Suat chieu tham chieu phim/phong sai.\n";
-            return false;
-        }
-    }
-    for (const Ticket& ticket : tickets) {
-        const Showtime* showtime = newSchedule.findShowtime(ticket.getShowtimeId());
-        if (!newUsers.findCustomer(ticket.getCustomerId()) || !showtime ||
-            ticket.getPriceVnd() != showtime->getPriceVnd()) {
-            std::cout << "Ve tham chieu khach/suat hoac gia sai.\n";
-            return false;
-        }
-        bool seatExists = false;
-        for (const CinemaRoom& room : rooms)
-            if (room.getId() == showtime->getRoomId() && room.hasSeat(ticket.getSeatId()))
-                seatExists = true;
-        if (!seatExists) {
-            std::cout << "Ve tham chieu ghe khong ton tai.\n";
-            return false;
-        }
-    }
-    movies_ = std::move(newMovies);
-    rooms_ = std::move(rooms);
-    schedule_ = std::move(newSchedule);
-    users_ = std::move(newUsers);
-    tickets_ = std::move(tickets);
-    return true;
+    std::string error;
+    const bool ok = dataStore_.loadAll(movies_, rooms_, schedule_, users_, tickets_,
+                                       directory, error);
+    if (!ok) std::cout << error << '\n';
+    return ok;
 }
 
 void CinemaSystem::run() {

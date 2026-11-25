@@ -28,3 +28,9 @@ jobs:
         run: cmake --build build-qt
       - name: Test GUI and core
         run: ctest --test-dir build-qt --output-on-failure
+      - name: Configure GUI Release
+        run: cmake -S . -B build-qt-release -DBUILD_QT_GUI=ON -DCMAKE_BUILD_TYPE=Release
+      - name: Build GUI Release
+        run: cmake --build build-qt-release
+      - name: Test GUI and core Release
+        run: ctest --test-dir build-qt-release --output-on-failure

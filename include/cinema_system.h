@@ -1,6 +1,7 @@
 #pragma once
 
 #include "booking_manager.h"
+#include "cinema_data_store.h"
 #include "file_storage.h"
 #include "movie_catalog.h"
 #include <vector>
@@ -30,5 +31,6 @@ private:
     UserManager users_;
     std::vector<Ticket> tickets_;
     FileStorage storage_;
+    CinemaDataStore dataStore_;
     BookingManager booking_;
 };

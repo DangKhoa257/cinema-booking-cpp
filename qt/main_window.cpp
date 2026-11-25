@@ -1,14 +1,25 @@
 #include "main_window.h"
 #include "ui_helpers.h"
 #include <QHBoxLayout>
+#include <QCloseEvent>
+#include <QDir>
+#include <QFileDialog>
 #include <QLabel>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QStackedWidget>
 #include <QStyle>
+#include <QStandardPaths>
 #include <QVBoxLayout>
 
-MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
+MainWindow::MainWindow(QWidget* parent) : MainWindow(QString(), parent) {}
+
+MainWindow::MainWindow(const QString& dataDirectory, QWidget* parent)
+    : QMainWindow(parent),
+      dataDirectory_(dataDirectory.isEmpty() ?
+          QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) :
+          dataDirectory) {
     setObjectName("mainWindow");
     setWindowTitle("Cinema Booking · Demo");
     resize(1120, 760);
@@ -38,6 +49,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
         QLabel#badge { color: #ffc3c8; background: #563044;
             border-radius: 8px; padding: 7px 12px; }
         QLabel#toast { color: #b6e6d1; }
+        QFrame#storageBar { background: #121c2a; border-bottom: 1px solid #263447; }
+        QLabel#saveStatus[state="dirty"] { color: #ffd08a; }
+        QLabel#saveStatus[state="saved"] { color: #8cdec1; }
+        QLabel#saveStatus[state="error"] { color: #ff8d98; }
         QPushButton { background: #25354a; color: #ecf4fa; border: 1px solid #40536a;
             border-radius: 10px; padding: 10px 15px; font-weight: 600; }
         QPushButton:hover { background: #334862; }
@@ -51,9 +66,16 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
             border-left: 3px solid #ff6677; }
         QPushButton#seat[seatState="available"] { background: #294b50;
             border: 1px solid #57a89c; }
-        QPushButton#seat[seatState="occupied"] { background: #533744;
-            border: 1px solid #a56c78; color: #cbbbc2; }
-        QPushButton#seat:checked { background: #e64d62; border: 1px solid #ff9fa9; }
+        QPushButton#seat[seatState="held"] { background: #634b35;
+            border: 1px solid #c89b5c; color: #ffe0b0; }
+        QPushButton#seat[seatState="booked"] { background: #533744;
+            border: 1px solid #a56c78; color: #efc4ce; }
+        QPushButton#seat[seatState="selected"] { background: #e64d62;
+            border: 1px solid #ff9fa9; color: white; }
+        QLabel[legendState="available"] { color: #70c9b8; }
+        QLabel[legendState="held"] { color: #eac18e; }
+        QLabel[legendState="booked"] { color: #e6a8b7; }
+        QLabel[legendState="selected"] { color: #ff818d; }
         QComboBox, QLineEdit { background: #0e1928; color: #f0f3f8;
             border: 1px solid #41536a; border-radius: 9px; padding: 9px; }
         QComboBox QAbstractItemView { background: #162236; color: #f0f3f8;
@@ -88,10 +110,13 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
         button->setCursor(Qt::PointingHandCursor);
         side->addWidget(button);
         navigation_.push_back(button);
-        connect(button, &QPushButton::clicked, this, [this, i] { showPage(i); });
+        connect(button, &QPushButton::clicked, this, [this, i] {
+            if (i == 1) showtimes_->setMovieFilter(0);
+            showPage(i);
+        });
     }
     side->addStretch();
-    auto* foot = mutedLabel("GIAI ĐOẠN 3A\nGiao diện thử nghiệm", sidebar);
+    auto* foot = mutedLabel("CINEMA BOOKING\nQt 6 · Bản demo", sidebar);
     side->addWidget(foot);
     shell->addWidget(sidebar);
 
@@ -110,11 +135,30 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     toast_->setWordWrap(true);
     top->addWidget(toast_);
     contentLayout->addWidget(topbar);
+    storageBar_ = new StorageBar(
+        [this] {
+            if (loadFailed_ && QMessageBox::question(this, "Bản lưu đang lỗi",
+                "Thư mục này có bản lưu lỗi. Bạn có chắc muốn ghi đè bằng dữ liệu đang mở?")
+                != QMessageBox::Yes) return;
+            saveData();
+        },
+        [this] {
+            if (session_.dirty() && QMessageBox::question(this, "Thay dữ liệu đang mở",
+                "Có thay đổi chưa lưu. Tiếp tục tải sẽ bỏ các thay đổi này?")
+                != QMessageBox::Yes) return;
+            loadData();
+        },
+        [this] { chooseDirectory(); }, content);
+    storageBar_->setDirectory(dataDirectory_);
+    storageBar_->setStatus("", session_.dirty());
+    contentLayout->addWidget(storageBar_);
     pages_ = new QStackedWidget(content);
     UiCallbacks callbacks{
         [this](int index) { showPage(index); },
+        [this](int movieId) { showtimes_->setMovieFilter(movieId); showPage(1); },
+        [this](int showtimeId) { seats_->selectShowtime(showtimeId); showPage(2); },
         [this](const QString& text) { toast_->setText(text); },
-        [this] { refreshAll(); }
+        [this] { refreshAll(); storageBar_->setStatus("", session_.dirty()); }
     };
     home_ = new HomePage(session_, callbacks, pages_);
     showtimes_ = new ShowtimePage(session_, callbacks, pages_);
@@ -126,12 +170,20 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     for (QWidget* page : pageList) {
         auto* scroll = new QScrollArea(pages_);
         scroll->setWidgetResizable(true);
+        scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         scroll->setWidget(page);
         pages_->addWidget(scroll);
     }
     contentLayout->addWidget(pages_, 1);
     shell->addWidget(content, 1);
     showPage(0);
+    const QDir savedDirectory(dataDirectory_);
+    const QStringList dataFiles = {"movies.txt", "rooms.txt", "showtimes.txt",
+                                   "customers.txt", "tickets.txt"};
+    bool hasSavedFile = false;
+    for (const QString& file : dataFiles)
+        if (savedDirectory.exists(file)) hasSavedFile = true;
+    if (hasSavedFile) loadData();
 }
 
 void MainWindow::refreshAll() {
@@ -154,3 +206,50 @@ void MainWindow::showPage(int index) {
 }
 
 int MainWindow::currentPage() const { return pages_->currentIndex(); }
+
+bool MainWindow::saveData() {
+    const bool ok = session_.save(dataDirectory_.toUtf8().toStdString());
+    if (ok) {
+        loadFailed_ = false;
+        toast_->setText("Đã lưu phim, phòng, suất, khách và vé.");
+        storageBar_->setStatus("", false);
+    } else {
+        toast_->setText("Lưu thất bại: " + QString::fromStdString(session_.lastError()));
+        storageBar_->setStatus("Lưu thất bại", session_.dirty(), true);
+    }
+    return ok;
+}
+
+bool MainWindow::loadData() {
+    const bool ok = session_.load(dataDirectory_.toUtf8().toStdString());
+    if (ok) {
+        loadFailed_ = false;
+        refreshAll();
+        toast_->setText("Đã khôi phục bản lưu hợp lệ.");
+        storageBar_->setStatus("", false);
+    } else {
+        loadFailed_ = true;
+        toast_->setText("Bản lưu lỗi: " + QString::fromStdString(session_.lastError()) +
+                        ". Dữ liệu đang mở được giữ nguyên.");
+        storageBar_->setStatus("Bản lưu lỗi", session_.dirty(), true);
+    }
+    return ok;
+}
+
+void MainWindow::chooseDirectory() {
+    const QString chosen = QFileDialog::getExistingDirectory(this, "Chọn thư mục dữ liệu",
+                                                            dataDirectory_);
+    if (chosen.isEmpty()) return;
+    dataDirectory_ = chosen;
+    storageBar_->setDirectory(dataDirectory_);
+    toast_->setText("Đã chọn thư mục. Chọn Tải hoặc Lưu để áp dụng.");
+    storageBar_->setStatus("", session_.dirty());
+    loadFailed_ = false;
+}
+
+void MainWindow::closeEvent(QCloseEvent* event) {
+    if (!session_.dirty() || QMessageBox::question(this, "Thay đổi chưa lưu",
+        "Dữ liệu đã thay đổi. Thoát mà không lưu?") == QMessageBox::Yes) {
+        event->accept();
+    } else event->ignore();
+}

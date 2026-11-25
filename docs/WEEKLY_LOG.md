@@ -6,5 +6,6 @@
 | Kiểm tra trước khi push / 2026-11-20 | Codex theo yêu cầu của người dùng | Đối chiếu API/OOP/ranh giới module; sửa mô hình ghế theo suất | G++ C++17 build và smoke test thành công | CMake/CTest không có trên máy; CI sẽ kiểm tra trên Ubuntu | TV1 giao module và triển khai đặt/hủy vé |
 | Tích hợp TV1 / 2026-11-25 | Codex theo yêu cầu TV1 | Triển khai đặt/hủy/thanh toán demo, menu, test và tài liệu API | CMake build; 9 CTest pass; kịch bản console đầy đủ và GitHub Actions Ubuntu pass | PR TV4 chưa merge; branch TV1 chứa commit TV4 tạm thời | Review thứ tự merge và quyết định phạm vi lưu trữ |
 | Đồng bộ TV1 / 2026-11-25 | Codex theo yêu cầu TV1 | Tạo branch mới từ `main` đã merge TV4, chỉ cherry-pick bốn commit TV1; giữ branch cũ | So sánh toàn bộ cây file không mất code; build sạch, 9 CTest và luồng console sau đồng bộ pass | Chưa có API lưu phòng, suất chiếu, khách giữa các phiên | Review branch TV1 mới trước khi merge |
+| Tích hợp Qt 3B / 2026-11-25 | Codex theo yêu cầu TV1 | Nối phim → suất → ghế → vé; thêm thanh lưu/tải và dùng chung `CinemaDataStore` | Test Qt nhiều tiến trình, Debug/Release và console không Qt; kiểm tra ảnh giao diện Windows | Ghi năm file chưa nguyên tử; phát hiện và sửa lỗi đường dẫn có dấu | TV1 review PR 3B trước khi merge |
 
 Mỗi thành viên gửi cập nhật thật theo tuần. Không điền tiến độ giả cho TV2–TV6.
