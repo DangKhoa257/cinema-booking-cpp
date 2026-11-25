@@ -15,3 +15,16 @@ jobs:
         run: cmake --build build
       - name: Test
         run: ctest --test-dir build --output-on-failure
+
+  qt-gui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Qt 6 Widgets
+        run: sudo apt-get update && sudo apt-get install -y qt6-base-dev
+      - name: Configure GUI
+        run: cmake -S . -B build-qt -DBUILD_QT_GUI=ON
+      - name: Build GUI and console
+        run: cmake --build build-qt
+      - name: Test GUI and core
+        run: ctest --test-dir build-qt --output-on-failure
