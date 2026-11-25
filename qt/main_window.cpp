@@ -1,0 +1,156 @@
+#include "main_window.h"
+#include "ui_helpers.h"
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QPushButton>
+#include <QScrollArea>
+#include <QStackedWidget>
+#include <QStyle>
+#include <QVBoxLayout>
+
+MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
+    setObjectName("mainWindow");
+    setWindowTitle("Cinema Booking · Demo");
+    resize(1120, 760);
+    setMinimumSize(860, 620);
+    setStyleSheet(R"QSS(
+        QMainWindow, QWidget { background: #0c111d; color: #f0f3f8;
+            font-family: "Segoe UI", "Arial"; font-size: 14px; }
+        QLabel { background: transparent; }
+        QFrame#sidebar { background: #111a29; border-right: 1px solid #263447; }
+        QFrame#topbar { background: #0c111d; border-bottom: 1px solid #263447; }
+        QFrame#card { background: #162236; border: 1px solid #26384f;
+            border-radius: 15px; }
+        QFrame#hero { background: #352038; border: 1px solid #7e3449;
+            border-radius: 18px; }
+        QLabel#brand { color: #ff6371; font-size: 22px; font-weight: 800; }
+        QLabel#pageTitle { font-size: 29px; font-weight: 800; }
+        QLabel#heroTitle { font-size: 26px; font-weight: 800; }
+        QLabel#sectionTitle { color: #ffb5ba; font-size: 12px;
+            font-weight: 800; letter-spacing: 2px; }
+        QLabel#muted { color: #a7b6c8; }
+        QLabel#cardTitle { font-size: 17px; font-weight: 700; }
+        QLabel#poster { background: #423046; color: #ffb6be;
+            border-radius: 10px; font-size: 26px; font-weight: 800; }
+        QLabel#showTime { color: #ff818d; font-size: 21px; font-weight: 800; }
+        QLabel#screen { color: #9fc6dc; background: #2b4157;
+            border-radius: 6px; padding: 10px; margin-bottom: 16px; }
+        QLabel#badge { color: #ffc3c8; background: #563044;
+            border-radius: 8px; padding: 7px 12px; }
+        QLabel#toast { color: #b6e6d1; }
+        QPushButton { background: #25354a; color: #ecf4fa; border: 1px solid #40536a;
+            border-radius: 10px; padding: 10px 15px; font-weight: 600; }
+        QPushButton:hover { background: #334862; }
+        QPushButton#primary, QPushButton#bookButton { background: #e64d62;
+            border: 1px solid #e64d62; color: white; }
+        QPushButton#primary:hover, QPushButton#bookButton:hover { background: #f4697a; }
+        QPushButton#nav { background: transparent; color: #a7b6c8;
+            border: 0; text-align: left; padding: 13px 17px; }
+        QPushButton#nav:hover { background: #24334a; color: white; }
+        QPushButton#nav[active="true"] { background: #3a2a3d; color: #ffadb5;
+            border-left: 3px solid #ff6677; }
+        QPushButton#seat[seatState="available"] { background: #294b50;
+            border: 1px solid #57a89c; }
+        QPushButton#seat[seatState="occupied"] { background: #533744;
+            border: 1px solid #a56c78; color: #cbbbc2; }
+        QPushButton#seat:checked { background: #e64d62; border: 1px solid #ff9fa9; }
+        QComboBox, QLineEdit { background: #0e1928; color: #f0f3f8;
+            border: 1px solid #41536a; border-radius: 9px; padding: 9px; }
+        QComboBox QAbstractItemView { background: #162236; color: #f0f3f8;
+            selection-background-color: #ad455d; }
+        QScrollArea { border: 0; }
+        QScrollBar:vertical { background: #111a29; width: 10px; }
+        QScrollBar::handle:vertical { background: #40536a; border-radius: 5px; }
+    )QSS");
+
+    auto* central = new QWidget(this);
+    setCentralWidget(central);
+    auto* shell = new QHBoxLayout(central);
+    shell->setContentsMargins(0, 0, 0, 0);
+    shell->setSpacing(0);
+    auto* sidebar = new QFrame(central);
+    sidebar->setObjectName("sidebar");
+    sidebar->setFixedWidth(222);
+    auto* side = new QVBoxLayout(sidebar);
+    side->setContentsMargins(15, 26, 15, 22);
+    side->setSpacing(6);
+    auto* brand = new QLabel("◉ CINEMA", sidebar);
+    brand->setObjectName("brand");
+    side->addWidget(brand);
+    side->addWidget(mutedLabel("BOOKING  /  DEMO", sidebar));
+    side->addSpacing(30);
+    const QStringList labels = {"⌂  Trang chủ", "▤  Suất chiếu", "▦  Chọn ghế",
+                                "♙  Khách hàng", "▣  Vé của bạn", "◇  Thanh toán"};
+    for (int i = 0; i < labels.size(); ++i) {
+        auto* button = new QPushButton(labels[i], sidebar);
+        button->setObjectName("nav");
+        button->setProperty("active", false);
+        button->setCursor(Qt::PointingHandCursor);
+        side->addWidget(button);
+        navigation_.push_back(button);
+        connect(button, &QPushButton::clicked, this, [this, i] { showPage(i); });
+    }
+    side->addStretch();
+    auto* foot = mutedLabel("GIAI ĐOẠN 3A\nGiao diện thử nghiệm", sidebar);
+    side->addWidget(foot);
+    shell->addWidget(sidebar);
+
+    auto* content = new QWidget(central);
+    auto* contentLayout = new QVBoxLayout(content);
+    contentLayout->setContentsMargins(0, 0, 0, 0);
+    contentLayout->setSpacing(0);
+    auto* topbar = new QFrame(content);
+    topbar->setObjectName("topbar");
+    auto* top = new QHBoxLayout(topbar);
+    top->setContentsMargins(36, 14, 36, 14);
+    top->addWidget(mutedLabel("ĐẶT VÉ XEM PHIM", topbar));
+    top->addStretch();
+    toast_ = new QLabel("Sẵn sàng", topbar);
+    toast_->setObjectName("toast");
+    toast_->setWordWrap(true);
+    top->addWidget(toast_);
+    contentLayout->addWidget(topbar);
+    pages_ = new QStackedWidget(content);
+    UiCallbacks callbacks{
+        [this](int index) { showPage(index); },
+        [this](const QString& text) { toast_->setText(text); },
+        [this] { refreshAll(); }
+    };
+    home_ = new HomePage(session_, callbacks, pages_);
+    showtimes_ = new ShowtimePage(session_, callbacks, pages_);
+    seats_ = new SeatMapPage(session_, callbacks, pages_);
+    customers_ = new CustomerPage(session_, callbacks, pages_);
+    tickets_ = new TicketPage(session_, callbacks, pages_);
+    payments_ = new PaymentPage(session_, callbacks, pages_);
+    QWidget* pageList[] = {home_, showtimes_, seats_, customers_, tickets_, payments_};
+    for (QWidget* page : pageList) {
+        auto* scroll = new QScrollArea(pages_);
+        scroll->setWidgetResizable(true);
+        scroll->setWidget(page);
+        pages_->addWidget(scroll);
+    }
+    contentLayout->addWidget(pages_, 1);
+    shell->addWidget(content, 1);
+    showPage(0);
+}
+
+void MainWindow::refreshAll() {
+    home_->refresh();
+    showtimes_->refresh();
+    seats_->refresh();
+    customers_->refresh();
+    tickets_->refresh();
+    payments_->refresh();
+}
+
+void MainWindow::showPage(int index) {
+    if (index < 0 || index >= pages_->count()) return;
+    pages_->setCurrentIndex(index);
+    for (int i = 0; i < static_cast<int>(navigation_.size()); ++i) {
+        navigation_[i]->setProperty("active", i == index);
+        navigation_[i]->style()->unpolish(navigation_[i]);
+        navigation_[i]->style()->polish(navigation_[i]);
+    }
+}
+
+int MainWindow::currentPage() const { return pages_->currentIndex(); }
