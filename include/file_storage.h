@@ -11,4 +11,11 @@ public:
     bool loadMovies(std::vector<Movie>& movies, const std::string& path);
     bool saveTickets(const std::vector<Ticket>& tickets, const std::string& path);
     bool loadTickets(std::vector<Ticket>& tickets, const std::string& path);
+
+    // Bo sung (khong doi chu ky cu): ly do loi cua lan goi save/load gan nhat,
+    // rong neu lan do thanh cong. Can TV1 dong y.
+    const std::string& lastError() const;
+
+private:
+    std::string lastError_;
 };
