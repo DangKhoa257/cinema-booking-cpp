@@ -28,4 +28,10 @@ Chạy `build-qt/cinema_booking_qt.exe` trên Windows hoặc `build-qt/cinema_bo
 
 Trong GUI, chọn phim → suất → ghế → khách và phương thức demo, kiểm tra dòng xác nhận rồi đặt vé. Thanh phía trên có **Thư mục…**, **Tải**, **Lưu**. Vị trí mặc định do Qt `QStandardPaths::AppDataLocation` cung cấp, nằm ngoài thư mục build; có thể chọn thư mục khác. Khi mở, ứng dụng tự tải bản lưu hợp lệ nếu có file dữ liệu. Nếu thiếu hoặc lỗi file, dữ liệu demo vẫn dùng được và giao diện báo lỗi; không tự ghi đè bản lưu lỗi. Dấu **Chưa lưu** nhắc lưu sau khi đặt/hủy/thanh toán hoặc thêm khách. Xem [kiến trúc Qt](docs/QT_UI.md) để biết phạm vi và cách kiểm thử.
 
+Khi thoát, tải bản khác hoặc chuyển thư mục mà còn thay đổi, ứng dụng hỏi **Lưu – Không lưu – Hủy**. Khi lưu, năm file được ghi vào vùng tạm và kiểm tra trước khi thay thế; bộ file trước đó được giữ ở `.cinema-backup` trong thư mục dữ liệu. Nếu quá trình thay thế bị gián đoạn, xem [hướng dẫn khôi phục](docs/WINDOWS_PACKAGE.md). Không đặt dữ liệu cá nhân thật trong bản demo.
+
+## Bản Windows x64
+
+Trên trang Actions của PR, tải artifact `CinemaBooking-Windows-x64` rồi giải nén ZIP. Mở `CinemaBooking-Windows-x64/cinema_booking_qt.exe`; giữ các DLL và thư mục `platforms` cạnh file exe. Bản ZIP chứa runtime Qt/MinGW, không cần cài Qt trên máy nhận. Hướng dẫn build, đóng gói, kiểm tra và khôi phục bản lưu: [WINDOWS_PACKAGE.md](docs/WINDOWS_PACKAGE.md). Ảnh chụp giao diện Qt Windows thật: [trang chủ](docs/screenshots/home-1120x760.png), [sơ đồ ghế 1120×760](docs/screenshots/seat-1120x760.png), [sơ đồ ghế 860×620](docs/screenshots/seat-860x620.png).
+
 Đọc [hợp đồng API](docs/API_CONTRACT.md), [kiến trúc](docs/ARCHITECTURE.md) và [quy trình nhóm](docs/TEAM_WORKFLOW.md) trước khi viết chức năng. Không sửa public API một mình.

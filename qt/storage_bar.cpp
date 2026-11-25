@@ -2,7 +2,7 @@
 #include "ui_helpers.h"
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QFontMetrics>
+#include <QFileInfo>
 #include <QPushButton>
 #include <QStyle>
 #include <utility>
@@ -37,9 +37,8 @@ StorageBar::StorageBar(std::function<void()> save, std::function<void()> load,
 }
 
 void StorageBar::setDirectory(const QString& path) {
-    pathLabel_->setText("Dữ liệu: " + pathLabel_->fontMetrics().elidedText(
-        path, Qt::ElideMiddle, 170));
-    pathLabel_->setToolTip(path);
+    pathLabel_->setText("Dữ liệu: " + QFileInfo(path).fileName());
+    pathLabel_->setToolTip("Thư mục dữ liệu: " + path);
 }
 
 void StorageBar::setStatus(const QString& message, bool dirty, bool error) {

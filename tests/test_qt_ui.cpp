@@ -1,16 +1,30 @@
 #include "main_window.h"
 #include <QApplication>
 #include <QComboBox>
+#include <QFile>
 #include <QLabel>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QTemporaryDir>
+#include <QTimer>
 #include <stdexcept>
 #include <iostream>
 
 #define CHECK(condition) do { if (!(condition)) throw std::runtime_error( \
     std::string("Line ") + std::to_string(__LINE__) + ": " + #condition); } while (false)
+
+static void answerDialog(QMessageBox::StandardButton answer) {
+    QTimer::singleShot(20, [answer] {
+        for (QWidget* widget : QApplication::topLevelWidgets()) {
+            auto* box = qobject_cast<QMessageBox*>(widget);
+            if (box && box->isVisible() && box->button(answer)) {
+                box->button(answer)->click(); return;
+            }
+        }
+    });
+}
 
 static QPushButton* seatButton(MainWindow& window, const QString& id) {
     for (QPushButton* button : window.findChildren<QPushButton*>("seat"))
@@ -83,6 +97,7 @@ int main(int argc, char* argv[]) {
         auto* bookingMethod = window.findChild<QComboBox*>("bookingMethodSelect");
         CHECK(bookingMethod);
         bookingMethod->setCurrentIndex(1);  // chuyen khoan demo
+        answerDialog(QMessageBox::Yes);
         book->click();
         app.processEvents();
         CHECK(window.currentPage() == 4);
@@ -106,6 +121,7 @@ int main(int argc, char* argv[]) {
         for (QPushButton* button : paymentPage->findChildren<QPushButton*>())
             if (button->text() == "Xử lý") pay = button;
         CHECK(pay);
+        answerDialog(QMessageBox::Yes);
         pay->click();  // DemoPayment: Pending -> Paid
         CHECK(pending->count() == 0);
         window.showPage(2);
@@ -116,6 +132,7 @@ int main(int argc, char* argv[]) {
         for (QPushButton* button : ticketPage->findChildren<QPushButton*>())
             if (button->text() == "Hủy vé") cancel = button;
         CHECK(cancel);
+        answerDialog(QMessageBox::Yes);
         cancel->click();
         app.processEvents();
         window.showPage(2);
@@ -129,6 +146,27 @@ int main(int argc, char* argv[]) {
         CHECK(unicodeSession.saveData());
         MainWindow restored(unicodePath);
         CHECK(restored.findChild<QLabel*>("saveStatus")->text().contains("Đã lưu"));
+        MainWindow unsaved(temporary.path() + "/new-session");
+        unsaved.show();
+        app.processEvents();
+        auto* loadButton = unsaved.findChild<QPushButton*>("loadDataButton");
+        CHECK(loadButton);
+        answerDialog(QMessageBox::Cancel);
+        loadButton->click();
+        CHECK(unsaved.findChild<QLabel*>("saveStatus")->text().contains("Chưa lưu"));
+        answerDialog(QMessageBox::Cancel);
+        unsaved.close();
+        CHECK(unsaved.isVisible());
+        answerDialog(QMessageBox::Save);
+        unsaved.close();
+        CHECK(!unsaved.isVisible());
+        CHECK(QFile::exists(temporary.path() + "/new-session/movies.txt"));
+        QFile blockedPath(temporary.path() + "/blocked-file");
+        CHECK(blockedPath.open(QIODevice::WriteOnly));
+        blockedPath.close();
+        MainWindow blocked(blockedPath.fileName());
+        CHECK(!blocked.saveData());
+        CHECK(blocked.findChild<QLabel*>("saveStatus")->text().contains("thất bại"));
         std::cout << "test_qt_ui OK\n";
         return 0;
     } catch (const std::exception& error) {

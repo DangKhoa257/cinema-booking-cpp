@@ -1,4 +1,4 @@
-# Giao diện Qt Widgets — Giai đoạn 3B
+# Giao diện Qt Widgets — Giai đoạn 3C
 
 ## Cấu trúc
 
@@ -20,6 +20,10 @@ MainWindow -> HomePage / ShowtimePage / SeatMapPage / CustomerPage / TicketPage 
 - Trang thanh toán xử lý lại vé Pending qua `DemoPayment` hoặc `BankTransferPayment`. Chuyển khoản demo luôn giữ Pending, không xác nhận giao dịch ngân hàng.
 
 Khi mở, GUI dùng thư mục mặc định ổn định từ `QStandardPaths::AppDataLocation`, ngoài thư mục build. Nếu chưa có file dữ liệu thì dùng demo; nếu có một phần hoặc file lỗi thì báo lỗi, giữ demo và không tự ghi đè. Có thể chọn thư mục khác. Sau thay đổi, thanh lưu trữ báo **Chưa lưu** và khi thoát sẽ hỏi nếu còn thay đổi. Nút **Lưu** ghi cả năm file; **Tải** chỉ thay dữ liệu khi toàn bộ hợp lệ. Vẫn còn giới hạn của Giai đoạn 2: việc ghi năm file chưa là một giao dịch nguyên tử. Chưa có xác thực người dùng, ảnh poster, dữ liệu phim từ mạng hoặc cổng thanh toán thật.
+
+Giai đoạn 3C bổ sung xác nhận trước khi đặt, thanh toán demo và hủy vé. Khi còn thay đổi chưa lưu, thoát, tải bản khác hoặc chuyển thư mục đều hỏi **Lưu – Không lưu – Hủy**. Nút vô hiệu hóa và focus có kiểu hiển thị rõ; thẻ phim xuống dòng khi tên dài; ghế có tooltip trạng thái. Thanh lưu hiển thị tên thư mục ngắn gọn, toàn bộ đường dẫn ở tooltip. Trang có cuộn dọc ở cửa sổ 860×620; ảnh chụp thật ở `docs/screenshots/`.
+
+`CinemaDataStore` ghi bộ năm file vào `.cinema-next`, tải thử và kiểm tra tham chiếu, sao lưu bộ cũ ở `.cinema-backup`, rồi mới thay file chính. Nếu thay thế lỗi, nó cố khôi phục bộ cũ; bản sao lưu được giữ để khôi phục thủ công nếu mất điện hoặc quá trình bị dừng giữa chừng. Năm file chính vẫn giữ định dạng và API cũ. Không tự ghi đè bộ file thiếu; GUI chỉ ghi đè bản lưu lỗi khi người dùng đồng ý. Đây là phương án đơn giản cho bài tập, **chưa phải giao dịch nguyên tử** hoặc hệ thống backup nhiều phiên bản.
 
 ## Build và kiểm thử
 

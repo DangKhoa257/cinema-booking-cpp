@@ -1,9 +1,11 @@
 #include "ui_pages.h"
 #include "ui_helpers.h"
+#include "ui_dialogs.h"
 #include <QComboBox>
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QLineEdit>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <utility>
@@ -85,6 +87,9 @@ SeatMapPage::SeatMapPage(UiSession& session, UiCallbacks callbacks, QWidget* par
             callbacks_.notify("Chọn suất chiếu, khách hàng và ghế trống.");
             return;
         }
+        if (!confirmAction(this, "Xác nhận đặt vé",
+                confirmationLabel_->text() + "\n\nTiếp tục tạo vé?"))
+            return;
         int ticketId = session_.book(customerBox_->currentData().toInt(),
             showtimeBox_->currentData().toInt(), selectedSeat_.toStdString(),
             methodBox_->currentIndex() == 0);
@@ -153,6 +158,10 @@ void SeatMapPage::drawSeats() {
             status == SeatStatus::Booked ? "booked" :
             id == selectedSeat_ ? "selected" : "available");
         button->setEnabled(available);
+        button->setToolTip(QString("Ghế %1 — %2").arg(id,
+            status == SeatStatus::Held ? "Đang giữ" :
+            status == SeatStatus::Booked ? "Đã đặt" :
+            id == selectedSeat_ ? "Đang chọn" : "Còn trống"));
         button->setCheckable(true);
         button->setChecked(id == selectedSeat_);
         button->setFixedSize(72, 54);
@@ -277,6 +286,9 @@ void TicketPage::refresh() {
             auto* cancel = new QPushButton("Hủy vé", frame);
             int id = ticket.getId();
             connect(cancel, &QPushButton::clicked, this, [this, id] {
+                if (!confirmAction(this, "Xác nhận hủy vé",
+                        QString("Hủy vé #%1 và trả ghế về trạng thái trống?").arg(id)))
+                    return;
                 callbacks_.notify(session_.cancel(id) ? "Đã hủy vé; ghế trở lại trống." :
                                                      "Không thể hủy vé.");
                 callbacks_.changed();
@@ -317,6 +329,10 @@ PaymentPage::PaymentPage(UiSession& session, UiCallbacks callbacks, QWidget* par
         if (ticketBox_->currentIndex() < 0) {
             callbacks_.notify("Không có vé Pending để thanh toán."); return;
         }
+        if (!confirmAction(this, "Xác nhận thanh toán mô phỏng",
+                QString("Xử lý vé #%1 bằng %2?").arg(ticketBox_->currentData().toInt())
+                    .arg(methodBox_->currentText())))
+            return;
         bool paid = session_.pay(ticketBox_->currentData().toInt(), methodBox_->currentIndex() == 0);
         callbacks_.notify(paid ? "Vé đã Paid (thanh toán demo)." :
                                  "Chưa xác nhận thanh toán; vé vẫn Pending.");

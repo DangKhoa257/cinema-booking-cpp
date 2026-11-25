@@ -54,6 +54,7 @@ void HomePage::refresh() {
         auto* details = new QVBoxLayout;
         auto* name = new QLabel(QString::fromStdString(movie.getTitle()), frame);
         name->setObjectName("cardTitle");
+        name->setWordWrap(true);
         details->addWidget(name);
         details->addWidget(mutedLabel(QString("%1 phút  •  %2  •  từ %3")
             .arg(movie.getDurationMinutes())
@@ -122,6 +123,7 @@ void ShowtimePage::refresh() {
         const Movie* movie = session_.movies().findMovie(show.getMovieId());
         auto* name = new QLabel(movie ? QString::fromStdString(movie->getTitle()) : "Không có phim", frame);
         name->setObjectName("cardTitle");
+        name->setWordWrap(true);
         details->addWidget(name);
         details->addWidget(mutedLabel(QString("%1  •  Phòng %2  •  %3")
             .arg(QString::fromStdString(show.getStartTime()).left(10))

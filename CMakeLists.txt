@@ -58,6 +58,10 @@ if(BUILD_TESTING)
         add_test(NAME ${test_name} COMMAND ${test_name})
     endforeach()
 
+    add_executable(test_data_snapshot tests/test_data_snapshot.cpp)
+    target_link_libraries(test_data_snapshot PRIVATE cinema_core)
+    add_test(NAME test_data_snapshot COMMAND test_data_snapshot)
+
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_schedule.cpp")
         add_executable(test_schedule tests/test_schedule.cpp)
         target_link_libraries(test_schedule PRIVATE cinema_core)

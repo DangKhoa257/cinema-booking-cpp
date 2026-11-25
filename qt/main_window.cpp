@@ -1,5 +1,6 @@
 #include "main_window.h"
 #include "ui_helpers.h"
+#include "ui_dialogs.h"
 #include <QHBoxLayout>
 #include <QCloseEvent>
 #include <QDir>
@@ -30,7 +31,7 @@ MainWindow::MainWindow(const QString& dataDirectory, QWidget* parent)
         QLabel { background: transparent; }
         QFrame#sidebar { background: #111a29; border-right: 1px solid #263447; }
         QFrame#topbar { background: #0c111d; border-bottom: 1px solid #263447; }
-        QFrame#card { background: #162236; border: 1px solid #26384f;
+        QFrame#card { background: #162236; border: 1px solid #31445c;
             border-radius: 15px; }
         QFrame#hero { background: #352038; border: 1px solid #7e3449;
             border-radius: 18px; }
@@ -40,6 +41,7 @@ MainWindow::MainWindow(const QString& dataDirectory, QWidget* parent)
         QLabel#sectionTitle { color: #ffb5ba; font-size: 12px;
             font-weight: 800; letter-spacing: 2px; }
         QLabel#muted { color: #a7b6c8; }
+        QLabel#dataPath { color: #c3d0df; }
         QLabel#cardTitle { font-size: 17px; font-weight: 700; }
         QLabel#poster { background: #423046; color: #ffb6be;
             border-radius: 10px; font-size: 26px; font-weight: 800; }
@@ -56,9 +58,14 @@ MainWindow::MainWindow(const QString& dataDirectory, QWidget* parent)
         QPushButton { background: #25354a; color: #ecf4fa; border: 1px solid #40536a;
             border-radius: 10px; padding: 10px 15px; font-weight: 600; }
         QPushButton:hover { background: #334862; }
+        QPushButton:disabled { background: #1c2838; color: #78899b;
+            border-color: #2b3b4e; }
+        QPushButton:focus { border: 2px solid #90c8f0; }
         QPushButton#primary, QPushButton#bookButton { background: #e64d62;
             border: 1px solid #e64d62; color: white; }
         QPushButton#primary:hover, QPushButton#bookButton:hover { background: #f4697a; }
+        QPushButton#primary:disabled, QPushButton#bookButton:disabled {
+            background: #613741; color: #a9a7ae; border-color: #613741; }
         QPushButton#nav { background: transparent; color: #a7b6c8;
             border: 0; text-align: left; padding: 13px 17px; }
         QPushButton#nav:hover { background: #24334a; color: white; }
@@ -72,17 +79,20 @@ MainWindow::MainWindow(const QString& dataDirectory, QWidget* parent)
             border: 1px solid #a56c78; color: #efc4ce; }
         QPushButton#seat[seatState="selected"] { background: #e64d62;
             border: 1px solid #ff9fa9; color: white; }
+        QPushButton#seat:disabled { font-weight: 700; }
         QLabel[legendState="available"] { color: #70c9b8; }
         QLabel[legendState="held"] { color: #eac18e; }
         QLabel[legendState="booked"] { color: #e6a8b7; }
         QLabel[legendState="selected"] { color: #ff818d; }
         QComboBox, QLineEdit { background: #0e1928; color: #f0f3f8;
             border: 1px solid #41536a; border-radius: 9px; padding: 9px; }
+        QComboBox:focus, QLineEdit:focus { border: 2px solid #90c8f0; }
         QComboBox QAbstractItemView { background: #162236; color: #f0f3f8;
             selection-background-color: #ad455d; }
         QScrollArea { border: 0; }
         QScrollBar:vertical { background: #111a29; width: 10px; }
         QScrollBar::handle:vertical { background: #40536a; border-radius: 5px; }
+        QScrollBar::handle:vertical:hover { background: #708ba8; }
     )QSS");
 
     auto* central = new QWidget(this);
@@ -137,15 +147,13 @@ MainWindow::MainWindow(const QString& dataDirectory, QWidget* parent)
     contentLayout->addWidget(topbar);
     storageBar_ = new StorageBar(
         [this] {
-            if (loadFailed_ && QMessageBox::question(this, "Bản lưu đang lỗi",
-                "Thư mục này có bản lưu lỗi. Bạn có chắc muốn ghi đè bằng dữ liệu đang mở?")
-                != QMessageBox::Yes) return;
+            if (loadFailed_ && !confirmAction(this, "Bản lưu đang lỗi",
+                "Thư mục này có bản lưu lỗi. Bạn có chắc muốn ghi đè bằng dữ liệu đang mở?"))
+                return;
             saveData();
         },
         [this] {
-            if (session_.dirty() && QMessageBox::question(this, "Thay dữ liệu đang mở",
-                "Có thay đổi chưa lưu. Tiếp tục tải sẽ bỏ các thay đổi này?")
-                != QMessageBox::Yes) return;
+            if (!confirmDiscardChanges("tải bản lưu khác")) return;
             loadData();
         },
         [this] { chooseDirectory(); }, content);
@@ -239,7 +247,8 @@ bool MainWindow::loadData() {
 void MainWindow::chooseDirectory() {
     const QString chosen = QFileDialog::getExistingDirectory(this, "Chọn thư mục dữ liệu",
                                                             dataDirectory_);
-    if (chosen.isEmpty()) return;
+    if (chosen.isEmpty() || chosen == dataDirectory_ ||
+        !confirmDiscardChanges("chuyển thư mục dữ liệu")) return;
     dataDirectory_ = chosen;
     storageBar_->setDirectory(dataDirectory_);
     toast_->setText("Đã chọn thư mục. Chọn Tải hoặc Lưu để áp dụng.");
@@ -247,9 +256,15 @@ void MainWindow::chooseDirectory() {
     loadFailed_ = false;
 }
 
+bool MainWindow::confirmDiscardChanges(const QString& action) {
+    if (!session_.dirty()) return true;
+    const auto choice = askUnsavedChanges(this, action);
+    if (choice == QMessageBox::Cancel) return false;
+    if (choice == QMessageBox::Save) return saveData();
+    return true;
+}
+
 void MainWindow::closeEvent(QCloseEvent* event) {
-    if (!session_.dirty() || QMessageBox::question(this, "Thay đổi chưa lưu",
-        "Dữ liệu đã thay đổi. Thoát mà không lưu?") == QMessageBox::Yes) {
-        event->accept();
-    } else event->ignore();
+    if (confirmDiscardChanges("thoát chương trình")) event->accept();
+    else event->ignore();
 }
