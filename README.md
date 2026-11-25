@@ -1,4 +1,6 @@
-# Cinema Booking C++17
+# OOP Cinema — Cinema Booking C++17
+
+> Đề xuất **OOP Cinema 2.0 — Giai đoạn 4A**: [đặc tả sản phẩm](docs/OOP_CINEMA_V2_SPEC.md) và [mockup tương tác](docs/mockups/oop-cinema-v2.html). Đây là bản thiết kế để TV1 review; ứng dụng chạy thật hiện vẫn là phiên bản 3C bên dưới.
 
 Ứng dụng console C++17 và giao diện Qt 6 Widgets tùy chọn cho bài tập lớn OOP của nhóm 6 thành viên. Cả hai giao diện đều xem phim/suất/phòng, đăng ký khách, đặt/hủy vé, thanh toán mô phỏng và lưu/tải dữ liệu. Chuyển khoản demo luôn giữ vé `Pending`, không xác nhận đã nhận tiền thật.
 
