@@ -1,6 +1,6 @@
 # Hợp đồng public API — tích hợp TV1
 
-Tài liệu này chốt chữ ký khai báo trong `include/`. Mọi thành viên triển khai đúng header của mình. Đề xuất đổi chữ ký, kiểu dữ liệu hoặc ý nghĩa trả về phải được TV1 và các module liên quan thống nhất trước khi sửa. Các API TV2, TV3, TV5, TV6 đã merge vào `main`; API TV4 hiện được cherry-pick nguyên commit từ PR #3 đang mở vào branch TV1 để kiểm thử tích hợp. Các hàm bổ sung được TV1 chấp thuận tại đây: `Seat`/`CinemaRoom::operator<<`, `Showtime::isValid`, `isValidDateTime`, `FileStorage::lastError`, `BookingManager::payTicket`.
+Tài liệu này chốt chữ ký khai báo trong `include/`. Mọi thành viên triển khai đúng header của mình. Đề xuất đổi chữ ký, kiểu dữ liệu hoặc ý nghĩa trả về phải được TV1 và các module liên quan thống nhất trước khi sửa. Các API TV2–TV6 đã merge vào `main`; branch `feature/tv1-final-integration` chỉ bổ sung phần TV1. Các hàm bổ sung được TV1 chấp thuận tại đây: `Seat`/`CinemaRoom::operator<<`, `Showtime::isValid`, `isValidDateTime`, `FileStorage::lastError`, `BookingManager::payTicket`.
 
 ## Kiểu chung, quy ước và invariant
 
@@ -27,7 +27,7 @@ Tài liệu này chốt chữ ký khai báo trong `include/`. Mọi thành viên
 
 ## TV4 — lịch chiếu
 
-`include/showtime.h` — `Showtime(int id, int movieId, int roomId, std::string startTime, std::string endTime, long long priceVnd)`; `int getId() const`; `int getMovieId() const`; `int getRoomId() const`; `const std::string& getStartTime() const`; `const std::string& getEndTime() const`; `long long getPriceVnd() const`; `bool isValid() const`; hàm tự do `bool isValidDateTime(const std::string&)`. Hai hàm kiểm tra mới thuộc PR TV4 đang mở; `isValidDateTime` kiểm tra ngày thực, cả năm nhuận.
+`include/showtime.h` — `Showtime(int id, int movieId, int roomId, std::string startTime, std::string endTime, long long priceVnd)`; `int getId() const`; `int getMovieId() const`; `int getRoomId() const`; `const std::string& getStartTime() const`; `const std::string& getEndTime() const`; `long long getPriceVnd() const`; `bool isValid() const`; hàm tự do `bool isValidDateTime(const std::string&)`. Hai hàm kiểm tra thuộc TV4, đã merge vào `main`; `isValidDateTime` kiểm tra ngày thực, cả năm nhuận.
 
 `include/schedule_manager.h` — `bool addShowtime(const Showtime&)`; `const Showtime* findShowtime(int id) const`; `bool hasRoomConflict(int roomId, const std::string& start, const std::string& end) const`; `const std::vector<Showtime>& getShowtimes() const`. `addShowtime` từ chối ID trùng hoặc xung đột cùng phòng; movieId/roomId trỏ đến dữ liệu do tầng tích hợp TV1 quản lý. Xung đột khi `existing.start < end && start < existing.end` với cùng roomId, sau khi xác thực thời gian.
 

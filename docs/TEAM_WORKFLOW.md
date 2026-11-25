@@ -13,7 +13,7 @@
 
 `include/common/types.h` là hợp đồng chung, chỉ TV1 sửa sau khi cả nhóm thống nhất. `.gitignore`, `tests/smoke_test.cpp`, `tests/test_booking.cpp`, `tests/console_input.txt`, `tests/console_flow.cmake` và `data/README.md` do TV1 duy trì. `docs/AI_USAGE_LOG.md`, `docs/WEEKLY_LOG.md`, `docs/REPORT_OUTLINE.md` do TV1 tổng hợp; mỗi thành viên gửi phần ghi chép của mình để TV1 cập nhật. Không ai sửa header hoặc `.cpp` của người khác. TV2–TV6 không sửa các file tích hợp của TV1. Nếu cần thay API, gửi đề xuất gồm chữ ký cũ/mới, lý do và module bị ảnh hưởng; chỉ sửa sau khi TV1 và owner liên quan đồng ý, rồi cập nhật `docs/API_CONTRACT.md` trước hoặc cùng PR.
 
-`feature/booking-integration` chứa nguyên các commit TV4 từ PR #3 đang mở để chạy tích hợp. Đây là dependency tạm thời, không có nghĩa PR #3 đã merge vào `main`. Khi TV4 PR merge, TV1 cần đồng bộ branch và kiểm tra lại diff để tránh đưa cùng thay đổi vào hai lần.
+PR TV4 #3 đã merge riêng vào `main`. `feature/tv1-final-integration` bắt đầu từ `origin/main` sau merge và chỉ lấy bốn commit TV1; `feature/booking-integration` cũ được giữ nguyên làm bản dự phòng. Diff của branch mới so với `main` không chứa file TV4.
 
 ## Nhánh và review
 
