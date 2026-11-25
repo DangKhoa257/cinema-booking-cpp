@@ -11,7 +11,9 @@
 | TV5 | `include/user.h`, `src/user.cpp`, `include/customer.h`, `src/customer.cpp`, `include/admin.h`, `src/admin.cpp`, `include/user_manager.h`, `src/user_manager.cpp`, `data/customers.txt`, test riêng cho người dùng trong `tests/` |
 | TV6 | `include/ticket.h`, `src/ticket.cpp`, `include/payment.h`, `src/payment.cpp`, `include/demo_payment.h`, `src/demo_payment.cpp`, `include/bank_transfer_payment.h`, `src/bank_transfer_payment.cpp`, `include/file_storage.h`, `src/file_storage.cpp`, `data/tickets.txt`, test riêng cho vé/thanh toán/lưu trữ trong `tests/` |
 
-`include/common/types.h` là hợp đồng chung, chỉ TV1 sửa sau khi cả nhóm thống nhất. `.gitignore`, `tests/smoke_test.cpp` và `data/README.md` do TV1 duy trì. `docs/AI_USAGE_LOG.md`, `docs/WEEKLY_LOG.md`, `docs/REPORT_OUTLINE.md` do TV1 tổng hợp; mỗi thành viên gửi phần ghi chép của mình để TV1 cập nhật. Không ai sửa header hoặc `.cpp` của người khác. TV2–TV6 không sửa các file tích hợp của TV1. Nếu cần thay API, gửi đề xuất gồm chữ ký cũ/mới, lý do và module bị ảnh hưởng; chỉ sửa sau khi TV1 và owner liên quan đồng ý, rồi cập nhật `docs/API_CONTRACT.md` trước hoặc cùng PR.
+`include/common/types.h` là hợp đồng chung, chỉ TV1 sửa sau khi cả nhóm thống nhất. `.gitignore`, `tests/smoke_test.cpp`, `tests/test_booking.cpp`, `tests/console_input.txt`, `tests/console_flow.cmake` và `data/README.md` do TV1 duy trì. `docs/AI_USAGE_LOG.md`, `docs/WEEKLY_LOG.md`, `docs/REPORT_OUTLINE.md` do TV1 tổng hợp; mỗi thành viên gửi phần ghi chép của mình để TV1 cập nhật. Không ai sửa header hoặc `.cpp` của người khác. TV2–TV6 không sửa các file tích hợp của TV1. Nếu cần thay API, gửi đề xuất gồm chữ ký cũ/mới, lý do và module bị ảnh hưởng; chỉ sửa sau khi TV1 và owner liên quan đồng ý, rồi cập nhật `docs/API_CONTRACT.md` trước hoặc cùng PR.
+
+PR TV4 #3 đã merge riêng vào `main`. `feature/tv1-final-integration` bắt đầu từ `origin/main` sau merge và chỉ lấy bốn commit TV1; `feature/booking-integration` cũ được giữ nguyên làm bản dự phòng. Diff của branch mới so với `main` không chứa file TV4.
 
 ## Nhánh và review
 
