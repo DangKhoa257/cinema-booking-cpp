@@ -1,6 +1,6 @@
 # Cinema Booking C++17
 
-Ứng dụng console C++17 và giao diện Qt 6 Widgets tùy chọn cho bài tập lớn OOP của nhóm 6 thành viên. Có dữ liệu demo để xem phim, suất, phòng/ghế; đăng ký khách, đặt/hủy vé, thanh toán mô phỏng và lưu/tải dữ liệu bằng console. Chuyển khoản demo luôn giữ vé `Pending`, không xác nhận đã nhận tiền thật.
+Ứng dụng console C++17 và giao diện Qt 6 Widgets tùy chọn cho bài tập lớn OOP của nhóm 6 thành viên. Cả hai giao diện đều xem phim/suất/phòng, đăng ký khách, đặt/hủy vé, thanh toán mô phỏng và lưu/tải dữ liệu. Chuyển khoản demo luôn giữ vé `Pending`, không xác nhận đã nhận tiền thật.
 
 ## Build và chạy
 
@@ -24,6 +24,8 @@ cmake --build build-qt
 ctest --test-dir build-qt --output-on-failure
 ```
 
-Chạy `build-qt/cinema_booking_qt.exe` trên Windows hoặc `build-qt/cinema_booking_qt` trên Linux. Trên Windows, thêm thư mục `bin` của Qt tương ứng vào `PATH` khi chạy ngoài Qt Creator. Nếu Qt 6 Widgets không được tìm thấy, CMake báo warning và vẫn build console; không tạo target GUI. Xem [kiến trúc Qt](docs/QT_UI.md) để biết phạm vi và cách kiểm thử.
+Chạy `build-qt/cinema_booking_qt.exe` trên Windows hoặc `build-qt/cinema_booking_qt` trên Linux. Trên Windows, thêm thư mục `bin` của Qt và MinGW tương ứng vào `PATH` khi chạy ngoài Qt Creator. Nếu Qt 6 Widgets không được tìm thấy, CMake báo warning và vẫn build console; không tạo target GUI.
+
+Trong GUI, chọn phim → suất → ghế → khách và phương thức demo, kiểm tra dòng xác nhận rồi đặt vé. Thanh phía trên có **Thư mục…**, **Tải**, **Lưu**. Vị trí mặc định do Qt `QStandardPaths::AppDataLocation` cung cấp, nằm ngoài thư mục build; có thể chọn thư mục khác. Khi mở, ứng dụng tự tải bản lưu hợp lệ nếu có file dữ liệu. Nếu thiếu hoặc lỗi file, dữ liệu demo vẫn dùng được và giao diện báo lỗi; không tự ghi đè bản lưu lỗi. Dấu **Chưa lưu** nhắc lưu sau khi đặt/hủy/thanh toán hoặc thêm khách. Xem [kiến trúc Qt](docs/QT_UI.md) để biết phạm vi và cách kiểm thử.
 
 Đọc [hợp đồng API](docs/API_CONTRACT.md), [kiến trúc](docs/ARCHITECTURE.md) và [quy trình nhóm](docs/TEAM_WORKFLOW.md) trước khi viết chức năng. Không sửa public API một mình.

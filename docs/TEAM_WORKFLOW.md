@@ -13,7 +13,7 @@
 
 `include/common/types.h` là hợp đồng chung, chỉ TV1 sửa sau khi cả nhóm thống nhất. `.gitignore`, `tests/smoke_test.cpp`, `tests/test_booking.cpp`, `tests/console_input.txt`, `tests/console_flow.cmake` và `data/README.md` do TV1 duy trì. `docs/AI_USAGE_LOG.md`, `docs/WEEKLY_LOG.md`, `docs/REPORT_OUTLINE.md` do TV1 tổng hợp; mỗi thành viên gửi phần ghi chép của mình để TV1 cập nhật. Không ai sửa header hoặc `.cpp` của người khác. TV2–TV6 không sửa các file tích hợp của TV1. Nếu cần thay API, gửi đề xuất gồm chữ ký cũ/mới, lý do và module bị ảnh hưởng; chỉ sửa sau khi TV1 và owner liên quan đồng ý, rồi cập nhật `docs/API_CONTRACT.md` trước hoặc cùng PR.
 
-Giai đoạn 3A: TV1 sở hữu toàn bộ `qt/`, `tests/test_qt_ui.cpp` và `docs/QT_UI.md`. GUI gọi `cinema_core` qua public API; TV2–TV6 không cần sửa file Qt và GUI không thay đổi hợp đồng API của họ.
+Từ Giai đoạn 3A: TV1 sở hữu toàn bộ `qt/`, `include/cinema_data_store.h`, `src/cinema_data_store.cpp`, `tests/test_qt_ui.cpp`, `tests/test_qt_persistence.cpp`, `tests/qt_persistence_flow.cmake` và `docs/QT_UI.md`. GUI gọi `cinema_core` qua public API; TV2–TV6 không cần sửa file Qt và GUI không thay đổi hợp đồng API của họ.
 
 PR TV4 #3 đã merge riêng vào `main`. `feature/tv1-final-integration` bắt đầu từ `origin/main` sau merge và chỉ lấy bốn commit TV1; `feature/booking-integration` cũ được giữ nguyên làm bản dự phòng. Diff của branch mới so với `main` không chứa file TV4.
 
