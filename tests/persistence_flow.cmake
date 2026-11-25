@@ -30,7 +30,7 @@ execute_process(COMMAND "${APP}" INPUT_FILE "${input2}"
     OUTPUT_VARIABLE output2 ERROR_VARIABLE error2 RESULT_VARIABLE result2)
 if(NOT result2 EQUAL 0 OR NOT output2 MATCHES "Khach: 2.*Suat: 1.*Pending" OR
    NOT output2 MATCHES "Dat ve that bai" OR
-   NOT output2 MATCHES "Suat chieu tham chieu phim/phong sai" OR
+   NOT output2 MATCHES "Suat chieu tham chieu phim hoac phong khong ton tai" OR
    NOT output2 MATCHES "Ve da Paid" OR
    NOT output2 MATCHES "Da tao ve #2 - Paid" OR
    NOT output2 MATCHES "Da huy ve")

@@ -84,7 +84,10 @@ bool textToStatus(const std::string& t, TicketStatus& out) {
 // Doc tat ca dong du lieu (bo dong rong, dong '#'). Tra false + err neu khong mo duoc.
 bool readDataLines(const std::string& path, std::vector<std::pair<int, std::string>>& lines,
                    std::string& err) {
-    std::ifstream in(path, std::ios::binary);
+    std::filesystem::path file;
+    try { file = std::filesystem::u8path(path); }
+    catch (const std::exception& e) { err = e.what(); return false; }
+    std::ifstream in(file, std::ios::binary);
     if (!in) { err = "Khong mo duoc file: " + path; return false; }
     std::string line;
     int no = 0;
@@ -102,22 +105,26 @@ bool readDataLines(const std::string& path, std::vector<std::pair<int, std::stri
 
 // Ghi vao file tam roi doi ten de khong lam hong file cu neu ghi that bai.
 bool atomicWrite(const std::string& path, const std::string& content, std::string& err) {
-    const std::string tmp = path + ".tmp";
+    std::filesystem::path target;
+    try { target = std::filesystem::u8path(path); }
+    catch (const std::exception& e) { err = e.what(); return false; }
+    std::filesystem::path tmp = target;
+    tmp += ".tmp";
     {
         std::ofstream out(tmp, std::ios::binary | std::ios::trunc);
-        if (!out) { err = "Khong tao duoc file tam: " + tmp; return false; }
+        if (!out) { err = "Khong tao duoc file tam: " + path + ".tmp"; return false; }
         out << content;
         out.flush();
         if (!out) {
             out.close();
             std::error_code ignored;
             std::filesystem::remove(tmp, ignored);
-            err = "Ghi file tam that bai: " + tmp;
+            err = "Ghi file tam that bai: " + path + ".tmp";
             return false;
         }
     }
     std::error_code ec;
-    std::filesystem::rename(tmp, path, ec);
+    std::filesystem::rename(tmp, target, ec);
     if (ec) {
         std::filesystem::remove(tmp, ec);
         err = "Khong thay duoc file dich: " + path;

@@ -10,7 +10,7 @@ add_library(cinema_core
     src/showtime.cpp src/schedule_manager.cpp src/user.cpp src/customer.cpp
     src/admin.cpp src/user_manager.cpp src/ticket.cpp src/payment.cpp
     src/demo_payment.cpp src/bank_transfer_payment.cpp src/file_storage.cpp
-    src/booking_manager.cpp src/cinema_system.cpp)
+    src/cinema_data_store.cpp src/booking_manager.cpp src/cinema_system.cpp)
 target_include_directories(cinema_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_executable(cinema_booking src/main.cpp)
@@ -22,7 +22,7 @@ if(BUILD_QT_GUI)
     if(Qt6_FOUND)
         add_library(cinema_qt_ui
             qt/ui_session.cpp qt/catalog_pages.cpp qt/transaction_pages.cpp
-            qt/main_window.cpp)
+            qt/storage_bar.cpp qt/main_window.cpp)
         target_include_directories(cinema_qt_ui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/qt)
         target_link_libraries(cinema_qt_ui PUBLIC cinema_core Qt6::Widgets)
         add_executable(cinema_booking_qt WIN32 qt/main.cpp)
@@ -39,6 +39,14 @@ if(BUILD_TESTING)
         target_link_libraries(test_qt_ui PRIVATE cinema_qt_ui)
         add_test(NAME test_qt_ui COMMAND test_qt_ui)
         set_tests_properties(test_qt_ui PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+        add_executable(test_qt_persistence tests/test_qt_persistence.cpp)
+        target_link_libraries(test_qt_persistence PRIVATE cinema_qt_ui)
+        add_test(NAME qt_persistence_flow
+            COMMAND ${CMAKE_COMMAND}
+                "-DAPP=$<TARGET_FILE:test_qt_persistence>"
+                "-DDATA_DIR=${CMAKE_CURRENT_BINARY_DIR}/qt_persistence_data"
+                -P "${CMAKE_CURRENT_SOURCE_DIR}/tests/qt_persistence_flow.cmake")
+        set_tests_properties(qt_persistence_flow PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
     endif()
     add_executable(smoke_test tests/smoke_test.cpp)
     target_link_libraries(smoke_test PRIVATE cinema_core)
