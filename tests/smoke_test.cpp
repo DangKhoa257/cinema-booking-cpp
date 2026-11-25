@@ -49,7 +49,8 @@ int main() {
     BankTransferPayment bank;
     Payment& demoMethod = demo;
     Payment& bankMethod = bank;
-    assert(!demoMethod.process(50000, "DEMO-1")); // Skeleton: chua thanh toan.
+    assert(demoMethod.process(50000, "DEMO-1")); // Thanh toan mo phong hop le.
+    assert(!demoMethod.process(0, "DEMO-1"));
     assert(!bankMethod.process(50000, "DEMO-1")); // Khong tu xac nhan chuyen khoan.
     CinemaSystem system;
     system.run();
