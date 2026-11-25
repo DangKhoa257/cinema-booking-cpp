@@ -19,6 +19,12 @@ Tài liệu này chốt chữ ký khai báo trong `include/`. Mọi thành viên
 
 `include/movie_catalog.h` — `bool addMovie(const Movie&)`; `const Movie* findMovie(int id) const`; `const std::vector<Movie>& getMovies() const`; `bool removeMovie(int id)`. `addMovie` từ chối ID trùng; `removeMovie` trả false nếu không có ID. Kiểm tra phim đang được lịch tham chiếu thuộc tầng tích hợp TV1, không tạo dependency từ catalog sang lịch.
 
+### 4B.1 — metadata phim V2 (module mới do TV1 tích hợp)
+
+`include/movie_details.h` — `enum class MovieAvailability { NowShowing, ComingSoon }`; `struct MovieDetails` gồm `movieId`, `title`, `originalTitle`, `genre`, `durationMinutes`, `ageRating`, `releaseDate`, `director`, `cast`, `synopsis`, `posterAsset`, `trailerUrl`, `availability`, `sourceUrl`, `verifiedAt`; `Movie toV1Movie(long long basePriceVnd) const`. Giá chuyển sang V1 phải do OOP Cinema cung cấp rõ ràng, không lấy giá rạp nguồn.
+
+`include/movie_details_catalog.h` — `bool add(const MovieDetails&, std::string& error)`; `const MovieDetails* find(int movieId) const`; `const std::vector<MovieDetails>& all() const`; `std::vector<const MovieDetails*> nowShowing() const`, `comingSoon() const`, `searchTitle(const std::string&) const`, `filterGenre(const std::string&) const`; `std::string posterPath(int movieId, const std::string& assetDirectory) const`; `bool load(const std::string& path, std::string& error)`; `bool save(const std::string& path, std::string& error) const`. Con trỏ kết quả chỉ hợp lệ cho đến lần thêm/nạp tiếp theo. `load` lỗi không thay catalog; `save` chỉ chạy khi gọi tường minh và không đụng năm file V1. `posterPath` rỗng khi asset thiếu. Định dạng, validation và giới hạn tìm kiếm UTF-8 ở [MOVIE_DATA_V2.md](MOVIE_DATA_V2.md). Không sửa API công khai `Movie`, `MovieCatalog` hoặc `FileStorage` V1.
+
 ## TV3 — phòng và ghế
 
 `include/seat.h` — `Seat(char row, int number)`; `char getRow() const`; `int getNumber() const`; `std::string getSeatId() const`; hàm tự do `std::ostream& operator<<(std::ostream&, const Seat&)`. Đây là ghế vật lý, không có trạng thái đặt vé. Hàng `A`–`Z`, số >= 1; constructor từ chối dữ liệu sai.

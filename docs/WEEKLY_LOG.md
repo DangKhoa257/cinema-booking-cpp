@@ -10,4 +10,6 @@
 | Hoàn thiện Qt 3C / 2026-11-25 | Codex theo yêu cầu TV1 | Cải thiện trạng thái nút và thẻ, xác nhận đặt/hủy/thanh toán, dialog Lưu–Không lưu–Hủy; thêm staging/backup, test và bản ZIP Windows | CTest cả ba cấu hình; GUI Qt Windows thật; ZIP chạy với PATH tối thiểu | Năm file vẫn thay lần lượt; bản sao lưu cần khôi phục thủ công nếu mất điện | TV1 review PR 3C, thử ZIP trên máy nhận |
 | Thiết kế 2.0 / 2026-11-25 | Codex theo yêu cầu TV1 | Đặc tả 4A, luồng và dữ liệu, API/migration đề xuất, mockup tự chứa | Đọc API/kiến trúc; khảo sát nguồn rạp chính thức; kiểm tra mockup trong Chrome Windows | Chưa xác minh đủ 6–10 phim hoặc quyền poster; chưa chốt tài khoản/ghế đôi/voucher | TV1 review PR 4A và chốt các quyết định trước 4B |
 
+| Movie Catalog 4B.1 / 2026-11-25 | Codex theo yêu cầu TV1 | Metadata và catalog V2 riêng; bảy phim có nguồn/ngày kiểm tra; tài liệu định dạng và test | Build C++17 không Qt 14 CTest, Qt Debug/Release 16 CTest mỗi cấu hình | Chưa có quyền poster/trailer; status sẽ lỗi thời; GUI 3C chưa nạp catalog mới | TV1 review PR 4B.1; 4B.2 xử lý cụm rạp/layout theo owner được chốt |
+
 Mỗi thành viên gửi cập nhật thật theo tuần. Không điền tiến độ giả cho TV2–TV6.
