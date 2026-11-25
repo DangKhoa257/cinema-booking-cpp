@@ -15,6 +15,8 @@
 
 Từ Giai đoạn 3A: TV1 sở hữu toàn bộ `qt/`, `include/cinema_data_store.h`, `src/cinema_data_store.cpp`, `tests/test_qt_ui.cpp`, `tests/test_qt_persistence.cpp`, `tests/qt_persistence_flow.cmake` và `docs/QT_UI.md`. GUI gọi `cinema_core` qua public API; TV2–TV6 không cần sửa file Qt và GUI không thay đổi hợp đồng API của họ.
 
+Giai đoạn 4B.1: TV1 chịu trách nhiệm tích hợp **lớp mới** `include/movie_details.h`, `include/movie_details_catalog.h`, `src/movie_details.cpp`, `src/movie_details_catalog.cpp`, `data/v2/movie_details.txt` và test/tài liệu tương ứng. TV2 tiếp tục sở hữu `Movie`/`MovieCatalog` V1; public API TV2 không đổi. Nhóm hiện có năm thành viên; TV3 trong bảng trên là chủ sở hữu **lịch sử** đã rời nhóm, không nhận việc mới. Phân công cho module phòng/ghế về sau cần TV1 chốt riêng, không suy ra từ bảng V1.
+
 PR TV4 #3 đã merge riêng vào `main`. `feature/tv1-final-integration` bắt đầu từ `origin/main` sau merge và chỉ lấy bốn commit TV1; `feature/booking-integration` cũ được giữ nguyên làm bản dự phòng. Diff của branch mới so với `main` không chứa file TV4.
 
 ## Nhánh và review
