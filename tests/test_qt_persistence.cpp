@@ -3,12 +3,25 @@
 #include <QComboBox>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMessageBox>
 #include <QPushButton>
+#include <QTimer>
 #include <iostream>
 #include <stdexcept>
 
 #define CHECK(condition) do { if (!(condition)) throw std::runtime_error( \
     std::string("Line ") + std::to_string(__LINE__) + ": " + #condition); } while (false)
+
+static void confirmNextDialog() {
+    QTimer::singleShot(20, [] {
+        for (QWidget* widget : QApplication::topLevelWidgets()) {
+            auto* box = qobject_cast<QMessageBox*>(widget);
+            if (box && box->isVisible() && box->button(QMessageBox::Yes)) {
+                box->button(QMessageBox::Yes)->click(); return;
+            }
+        }
+    });
+}
 
 static QPushButton* visibleSeat(MainWindow& window, const QString& id) {
     for (QPushButton* button : window.findChildren<QPushButton*>("seat"))
@@ -26,6 +39,7 @@ static void bookPending(QApplication& app, MainWindow& window) {
     auto* book = window.findChild<QPushButton*>("bookButton");
     CHECK(method && book && book->isEnabled());
     method->setCurrentIndex(1);
+    confirmNextDialog();
     book->click();
     app.processEvents();
     CHECK(window.currentPage() == 4);
@@ -72,6 +86,7 @@ int main(int argc, char* argv[]) {
                                             ->findChildren<QPushButton*>())
                 if (button->text() == "Xử lý") pay = button;
             CHECK(pay);
+            confirmNextDialog();
             pay->click();
             CHECK(pending->count() == 0);
             CHECK(window.saveData());

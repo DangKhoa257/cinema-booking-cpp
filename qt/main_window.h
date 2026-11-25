@@ -21,6 +21,7 @@ public:
 
 private:
     void refreshAll();
+    bool confirmDiscardChanges(const QString& action);
     void chooseDirectory();
     void closeEvent(QCloseEvent* event) override;
     UiSession session_;
