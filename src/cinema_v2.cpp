@@ -137,8 +137,9 @@ bool installFile(const std::filesystem::path& target, const std::string& content
     std::error_code ec;
     const bool existed = std::filesystem::exists(target);
     if (existed) {
-        std::filesystem::copy_file(target, backup,
-            std::filesystem::copy_options::overwrite_existing, ec);
+        std::filesystem::remove(backup, ec);
+        if (ec) { error = "Khong don duoc backup cu: " + ec.message(); return false; }
+        std::filesystem::copy_file(target, backup, ec);
         if (ec) { error = "Khong sao luu duoc file cu: " + ec.message(); return false; }
         std::filesystem::remove(target, ec);
         if (ec) { error = "Khong thay duoc file cu: " + ec.message(); return false; }

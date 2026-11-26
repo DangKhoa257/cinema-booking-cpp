@@ -291,8 +291,10 @@ bool MovieDetailsCatalog::save(const std::string& path, std::string& error) cons
         std::error_code ec;
         const bool existed = std::filesystem::exists(target);
         if (existed) {
-            std::filesystem::copy_file(target, backup,
-                std::filesystem::copy_options::overwrite_existing, ec);
+            // MinGW tren Windows khong luon thay duoc backup co san bang overwrite_existing.
+            std::filesystem::remove(backup, ec);
+            if (ec) { error = "Khong don duoc backup cu: " + ec.message(); return false; }
+            std::filesystem::copy_file(target, backup, ec);
             if (ec) { error = "Sao luu file cu that bai: " + ec.message(); return false; }
             std::filesystem::remove(target, ec);
             if (ec) { error = "Khong thay duoc file cu: " + ec.message(); return false; }
