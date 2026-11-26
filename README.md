@@ -1,6 +1,6 @@
 # OOP Cinema — Cinema Booking C++17
 
-> **OOP Cinema 2.0:** [đặc tả đã duyệt](docs/OOP_CINEMA_V2_SPEC.md), [mockup 4A](docs/mockups/oop-cinema-v2.html) và [danh mục phim V2 4B.1](docs/MOVIE_DATA_V2.md). Ứng dụng console/Qt chạy thật hiện vẫn là phiên bản 3C; 4C sẽ nối danh mục mới vào GUI.
+> **OOP Cinema 2.0:** [đặc tả đã duyệt](docs/OOP_CINEMA_V2_SPEC.md), [mockup 4A](docs/mockups/oop-cinema-v2.html), [danh mục phim 4B.1](docs/MOVIE_DATA_V2.md) và [cụm rạp/layout 4B.2](docs/CINEMA_V2_DATA.md). Ứng dụng console/Qt chạy thật hiện vẫn là phiên bản 3C; 4C sẽ nối dữ liệu V2 vào GUI.
 
 Ứng dụng console C++17 và giao diện Qt 6 Widgets tùy chọn cho bài tập lớn OOP của nhóm hiện có 5 thành viên. Cả hai giao diện đều xem phim/suất/phòng, đăng ký khách, đặt/hủy vé, thanh toán mô phỏng và lưu/tải dữ liệu. Chuyển khoản demo luôn giữ vé `Pending`, không xác nhận đã nhận tiền thật.
 
