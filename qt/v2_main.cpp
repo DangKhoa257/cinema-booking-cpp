@@ -2,10 +2,13 @@
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QDir>
+#include <QIcon>
 #include <QStandardPaths>
 
 int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
+    const QIcon appIcon(":/oop-cinema/icon.png");
+    app.setWindowIcon(appIcon);
     QCoreApplication::setOrganizationName("OOP Cinema");
     QCoreApplication::setApplicationName("OOP Cinema 2.0");
     QCommandLineParser parser;
@@ -22,6 +25,7 @@ int main(int argc, char* argv[]) {
     V2Window window(QDir(data).filePath("movie_details.txt"),
                     QDir(data).filePath("cinema_demo.txt"),
                     QDir(base).filePath("assets"), storage);
+    window.setWindowIcon(appIcon);
     if (parser.isSet("window-size")) {
         const QStringList parts = parser.value("window-size").split('x');
         if (parts.size() == 2) window.resize(parts[0].toInt(), parts[1].toInt());
