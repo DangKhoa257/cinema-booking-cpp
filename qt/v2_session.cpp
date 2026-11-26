@@ -237,14 +237,17 @@ CinemaOrder* V2Session::findOrder(const QString& code) {
 }
 
 bool V2Session::pay(const QString& code) {
+    error_.clear();
     const auto* order = findOrder(code);
     if (!order) { error_ = "Không tìm thấy đơn."; return false; }
     DemoPayment demo;
     bool changed = false;
+    const std::vector<Ticket> before = tickets_;
     for (int id : order->ticketIds) {
         for (const Ticket& ticket : tickets_) if (ticket.getId() == id &&
             ticket.getStatus() == TicketStatus::Pending) {
             if (!booking_->payTicket(id, demo)) {
+                tickets_ = before;
                 error_ = "Không thể thanh toán vé Pending.";
                 return false;
             }
@@ -256,13 +259,20 @@ bool V2Session::pay(const QString& code) {
 }
 
 bool V2Session::cancel(const QString& code) {
+    error_.clear();
     const auto* order = findOrder(code);
     if (!order) { error_ = "Không tìm thấy đơn."; return false; }
     bool changed = false;
+    const std::vector<Ticket> before = tickets_;
     for (int id : order->ticketIds) {
         for (const Ticket& ticket : tickets_) if (ticket.getId() == id &&
             ticket.getStatus() != TicketStatus::Cancelled) {
-            changed = booking_->cancelTicket(id) || changed;
+            if (!booking_->cancelTicket(id)) {
+                tickets_ = before;
+                error_ = "Không thể hủy toàn bộ vé trong đơn.";
+                return false;
+            }
+            changed = true;
             break;
         }
     }

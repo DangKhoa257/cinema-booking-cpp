@@ -102,8 +102,14 @@ int main(int argc, char* argv[]) {
         require(!session.checkout(showId, {"A1"}, snacks, "", "Nguyễn Văn B",
                                   "0901234568", "b@example.com", true, duplicate),
                 "duplicate seat rejected");
+        require(!session.pay("OOP-UNKNOWN") &&
+                session.seatStatus(showId, "A1") == SeatStatus::Held,
+                "failed payment lookup leaves pending tickets and held seat unchanged");
         require(session.pay(code), "pending to paid");
         require(session.seatStatus(showId, "A1") == SeatStatus::Booked, "booked seat");
+        require(!session.pay(code) &&
+                session.seatStatus(showId, "A1") == SeatStatus::Booked,
+                "repeated payment does not alter paid tickets");
         require(session.save(), "save V2");
         // Bản V2 cũ lưu sáu số lượng; thêm món cũ số lượng 0 để mô phỏng file cũ.
         const QString ordersPath = QDir(folder).filePath("orders.json");
@@ -156,6 +162,16 @@ int main(int argc, char* argv[]) {
         QFile backup(QDir(folder).filePath(backups.front() + "/tickets.txt"));
         require(backup.open(QIODevice::ReadOnly) && backup.readAll().contains("not a valid ticket"),
                 "damaged content preserved in backup");
+        V2Session immediate(QString::fromUtf8(MOVIE_DATA_FILE),
+                            QString::fromUtf8(CINEMA_DATA_FILE),
+                            QDir(temp.path()).filePath("instant-payment"));
+        QString instantCode;
+        require(immediate.ready() &&
+                immediate.checkout(showId, {"A2"}, snacks, "", "Nguyễn Văn C",
+                                   "0901234569", "c@example.com", true, instantCode) &&
+                immediate.error().isEmpty() &&
+                immediate.seatStatus(showId, "A2") == SeatStatus::Booked,
+                "successful immediate demo payment marks seat booked");
         std::cout << "V2 session flow passed\n";
         return 0;
     } catch (const std::exception& ex) {

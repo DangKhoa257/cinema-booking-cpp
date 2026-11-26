@@ -106,6 +106,7 @@ V2Window::V2Window(const QString& movieFile, const QString& cinemaFile,
 
     setStyleSheet(R"(
         QWidget#shell, QWidget#pageBody, QScrollArea#pageScroll {background:#fff8f0;color:#2d211d;}
+        QLabel {color:#2d211d;}
         QFrame#topBar {background:#fff3e7;border-bottom:1px solid #edd1bb;}
         QLabel[kind="brand"] {font-size:22px;font-weight:900;letter-spacing:2px;color:#2d211d;}
         QPushButton {background:#fff8f0;color:#593823;border:1px solid #ddb894;border-radius:9px;padding:10px 16px;font-weight:600;}
@@ -529,9 +530,18 @@ void V2Window::showCheckout() {
             showSeats(showtimeId_);
             return;
         }
+        const bool paymentPending = payNow->isChecked() &&
+            statusOf(session_, session_.orders().back()) == "Đang chờ thanh toán";
         const bool saved = saveChanges();
-        status_->setText(saved ? "Đã tạo và lưu đơn " + code + "." :
-                          "Đơn " + code + " chỉ đang ở bộ nhớ; chưa lưu được. Vui lòng kiểm tra lỗi.");
+        if (paymentPending) {
+            status_->setText("Đơn " + code + " đang Pending; thanh toán mô phỏng chưa hoàn tất. "
+                             "Có thể thanh toán lại trên vé. " +
+                             (saved ? "Đơn đã lưu." : "Lưu thất bại; đơn chỉ còn trong bộ nhớ."));
+        } else {
+            status_->setText(saved ? "Đã tạo và lưu đơn " + code +
+                                      (payNow->isChecked() ? "; thanh toán mô phỏng thành công." : ".") :
+                              "Đơn " + code + " chỉ đang ở bộ nhớ; lưu thất bại. Vui lòng kiểm tra lỗi.");
+        }
         showTicket(code);
     });
     root->addWidget(confirm, 0, Qt::AlignRight);
