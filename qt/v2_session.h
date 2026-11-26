@@ -11,7 +11,10 @@
 #include <vector>
 
 struct SnackItem {
+    int id = 0;
     QString name;
+    QString contents;
+    QString imageFile;
     long long price = 0;
 };
 

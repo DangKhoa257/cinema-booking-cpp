@@ -13,6 +13,7 @@
 #include <QSet>
 
 #include <algorithm>
+#include <array>
 #include <climits>
 #include <set>
 
@@ -33,14 +34,27 @@ const CinemaRoom* roomFor(const CinemaV2& cinema, int id) {
     for (const auto& room : cinema.rooms()) if (room.getId() == id) return &room;
     return nullptr;
 }
+
+// Đơn đã tạo trước khi danh mục bắp nước đổi sang 5 món vẫn dùng giá cũ.
+long long previousSnackTotal(const std::vector<int>& quantities) {
+    static const std::array<long long, 6> prices{
+        45000, 55000, 30000, 35000, 65000, 115000};
+    if (quantities.size() != prices.size()) return -1;
+    long long total = 0;
+    for (size_t i = 0; i < prices.size(); ++i)
+        total += quantities[i] * prices[i];
+    return total;
+}
 }
 
 V2Session::V2Session(const QString& movieFile, const QString& cinemaFile,
                      const QString& storageDirectory)
     : movieFile_(movieFile), cinemaFile_(cinemaFile), directory_(storageDirectory) {
-    snacks_ = {{"Bắp rang bơ", 45000}, {"Bắp caramel", 55000},
-               {"Nước ngọt", 30000}, {"Trà đào", 35000},
-               {"Combo một người", 65000}, {"Combo hai người", 115000}};
+    snacks_ = {{1, "Bắp rang bơ", "1 bắp", "snacks/popcorn.png", 45000},
+               {2, "Nước ngọt", "1 nước", "snacks/soda.png", 30000},
+               {3, "Combo 1", "1 bắp + 2 nước", "snacks/combo-1.png", 99000},
+               {4, "Combo 2", "2 bắp + 2 nước", "snacks/combo-2.png", 139000},
+               {5, "Combo 3", "3 bắp + 3 nước", "snacks/combo-3.png", 199000}};
     vouchers_ = {{"OOP10", "Giảm 10%, tối đa 40.000 ₫", 10, 40000},
                  {"SINHVIEN", "Giảm 15%, tối đa 50.000 ₫", 15, 50000},
                  {"CUOITUAN", "Giảm 8%, tối đa 30.000 ₫", 8, 30000}};
@@ -51,7 +65,7 @@ V2Session::V2Session(const QString& movieFile, const QString& cinemaFile,
     for (const auto& name : required) if (QFileInfo::exists(fileAt(directory_, name))) ++existing;
     if (existing == 0) {
         ready_ = loadDemo();
-        notice_ = "Đang dùng dữ liệu demo. Chọn Lưu để giữ đơn hàng sau khi thoát.";
+        notice_ = "Sẵn sàng đặt vé. Đơn hàng sẽ được lưu tự động.";
     } else if (existing == required.size()) {
         ready_ = load();
         if (!ready_) {
@@ -92,7 +106,7 @@ bool V2Session::loadDemo() {
     orders_.clear();
     resetBooking();
     error_.clear();
-    dirty_ = true;
+    dirty_ = false;
     return true;
 }
 
@@ -340,7 +354,8 @@ bool V2Session::readOrders(const QString& path, std::vector<CinemaOrder>& orders
             order.snackQuantities.push_back(quantity.toInt());
         }
         if (order.ticketIds.empty() || order.ticketIds.size() != order.seatIds.size() ||
-            order.snackQuantities.size() != snacks_.size()) return false;
+            (order.snackQuantities.size() != snacks_.size() &&
+             order.snackQuantities.size() != 6)) return false;
         orders.push_back(std::move(order));
     }
     return true;
@@ -401,8 +416,10 @@ bool V2Session::load() {
             seatsTotal += show->getPriceVnd() +
                 (position->category == SeatCategory::VIP ? 20000 : 0);
         }
+        const long long savedFood = order.snackQuantities.size() == 6 ?
+            previousSnackTotal(order.snackQuantities) : snackTotal(order.snackQuantities);
         if (seatsTotal != order.ticketTotal ||
-            snackTotal(order.snackQuantities) != order.snackTotal ||
+            savedFood != order.snackTotal ||
             discountFor(order.voucher, seatsTotal + order.snackTotal) != order.discount) {
             error_ = "Tổng tiền hoặc ưu đãi trong đơn không hợp lệ."; return false;
         }

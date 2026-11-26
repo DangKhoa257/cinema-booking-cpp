@@ -3,6 +3,9 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QFile>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QTemporaryDir>
 #include <iostream>
 #include <stdexcept>
@@ -20,6 +23,38 @@ int main(int argc, char* argv[]) {
         V2Session session(QString::fromUtf8(MOVIE_DATA_FILE),
                           QString::fromUtf8(CINEMA_DATA_FILE), folder);
         require(session.ready(), "demo loads");
+        const std::vector<QString> snackNames{"Bắp rang bơ", "Nước ngọt",
+                                              "Combo 1", "Combo 2", "Combo 3"};
+        const std::vector<QString> snackContents{"1 bắp", "1 nước",
+                                                 "1 bắp + 2 nước", "2 bắp + 2 nước",
+                                                 "3 bắp + 3 nước"};
+        const std::vector<long long> snackPrices{45000, 30000, 99000, 139000, 199000};
+        require(session.snacks().size() == 5, "exactly five current snack products");
+        for (size_t i = 0; i < snackNames.size(); ++i)
+            require(session.snacks()[i].id == int(i + 1) &&
+                    session.snacks()[i].name == snackNames[i] &&
+                    session.snacks()[i].contents == snackContents[i] &&
+                    session.snacks()[i].price == snackPrices[i] &&
+                    !session.snacks()[i].imageFile.isEmpty(), "snack catalog metadata");
+        require(session.snackTotal({1, 1, 1, 1, 1}) == 512000,
+                "five product prices add correctly");
+        require(session.snackTotal({-1, 0, 0, 0, 0}) < 0 &&
+                session.snackTotal({10, 0, 0, 0, 0}) < 0, "quantity bounds");
+        QFile blockedDirectory(QDir(temp.path()).filePath("not-a-directory"));
+        require(blockedDirectory.open(QIODevice::WriteOnly), "create blocked storage path");
+        blockedDirectory.write("keep this file");
+        blockedDirectory.close();
+        V2Session cannotSave(QString::fromUtf8(MOVIE_DATA_FILE),
+                             QString::fromUtf8(CINEMA_DATA_FILE),
+                             blockedDirectory.fileName());
+        QString unsavedCode;
+        require(cannotSave.ready() &&
+                cannotSave.checkout(1, {"A1"}, {0, 0, 0, 0, 0}, "",
+                                    "Khách thử", "0901234567", "unsaved@example.com",
+                                    false, unsavedCode) &&
+                !cannotSave.save() && cannotSave.dirty() &&
+                cannotSave.orders().size() == 1,
+                "failed save leaves visible unsaved order and dirty state");
         require(session.movies().all().size() == 11, "nine displayed and two historical movies");
         require(session.featuredMovies().size() == 9, "nine poster movies are featured");
         require(!session.isFeaturedMovie(104) && !session.isFeaturedMovie(108),
@@ -70,9 +105,27 @@ int main(int argc, char* argv[]) {
         require(session.pay(code), "pending to paid");
         require(session.seatStatus(showId, "A1") == SeatStatus::Booked, "booked seat");
         require(session.save(), "save V2");
+        // Bản V2 cũ lưu sáu số lượng; thêm món cũ số lượng 0 để mô phỏng file cũ.
+        const QString ordersPath = QDir(folder).filePath("orders.json");
+        QFile oldOrders(ordersPath);
+        require(oldOrders.open(QIODevice::ReadOnly), "read saved order");
+        QJsonArray rows = QJsonDocument::fromJson(oldOrders.readAll()).array();
+        oldOrders.close();
+        require(rows.size() == 1, "one saved order");
+        QJsonObject oldRow = rows[0].toObject();
+        QJsonArray oldSnacks = oldRow.value("snacks").toArray();
+        oldSnacks.append(0);
+        oldRow["snacks"] = oldSnacks;
+        rows[0] = oldRow;
+        require(oldOrders.open(QIODevice::WriteOnly | QIODevice::Truncate),
+                "write legacy order format");
+        oldOrders.write(QJsonDocument(rows).toJson());
+        oldOrders.close();
         V2Session reopened(QString::fromUtf8(MOVIE_DATA_FILE),
                            QString::fromUtf8(CINEMA_DATA_FILE), folder);
-        require(reopened.ready() && reopened.orders().size() == 1, "load after restart");
+        require(reopened.ready() && reopened.orders().size() == 1 &&
+                reopened.orders().front().snackQuantities.size() == 6,
+                "legacy six-item order loads after restart");
         require(reopened.seatStatus(showId, "A1") == SeatStatus::Booked,
                 "paid seat restored");
         require(reopened.cancel(code), "paid to cancelled");
