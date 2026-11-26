@@ -25,6 +25,10 @@ Giai đoạn 3C bổ sung xác nhận trước khi đặt, thanh toán demo và 
 
 `CinemaDataStore` ghi bộ năm file vào `.cinema-next`, tải thử và kiểm tra tham chiếu, sao lưu bộ cũ ở `.cinema-backup`, rồi mới thay file chính. Nếu thay thế lỗi, nó cố khôi phục bộ cũ; bản sao lưu được giữ để khôi phục thủ công nếu mất điện hoặc quá trình bị dừng giữa chừng. Năm file chính vẫn giữ định dạng và API cũ. Không tự ghi đè bộ file thiếu; GUI chỉ ghi đè bản lưu lỗi khi người dùng đồng ý. Đây là phương án đơn giản cho bài tập, **chưa phải giao dịch nguyên tử** hoặc hệ thống backup nhiều phiên bản.
 
+## OOP Cinema 2.0
+
+Target `oop_cinema_qt` dùng `V2Session` (điều phối nghiệp vụ), `MovieGallery`/`SeatMapWidget`/`TicketCard` (widget) và `V2Window` (điều hướng). Giao diện V1 và console giữ nguyên chức năng. Luồng, tài nguyên, lưu trữ và giới hạn chi tiết ở [OOP_CINEMA_V2_GUI.md](OOP_CINEMA_V2_GUI.md). `CinemaV2` quản lý rạp/phòng/suất; `BookingManager` vẫn quyết định trạng thái ghế và vé; `FileStorage` lưu khách/vé. GUI không tự tạo xác nhận chuyển khoản.
+
 ## Build và kiểm thử
 
 `BUILD_QT_GUI=OFF` mặc định. Khi bật, CMake tìm Qt 6 Widgets và tạo `cinema_booking_qt`, `test_qt_ui`, `test_qt_persistence`; nếu Qt thiếu, chỉ build console và test cũ. `test_qt_ui` dùng kiểm tra luôn chạy trong Release, kiểm tra phim → suất → ghế → Pending → Paid → Cancelled và đường dẫn lưu có dấu. `qt_persistence_flow` chạy nhiều tiến trình GUI để kiểm tra lưu/khôi phục, phòng khác, bản lưu lỗi và file thiếu. Test CTest dùng `QT_QPA_PLATFORM=offscreen`; kiểm tra giao diện thực tế trên Windows đã chạy với `QT_QPA_PLATFORM=windows`, gồm cửa sổ tối thiểu có cuộn dọc. GitHub Actions build/test Qt ở cả cấu hình mặc định và Release.

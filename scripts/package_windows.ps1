@@ -2,25 +2,34 @@ param(
     [Parameter(Mandatory = $true)][string]$BuildDir,
     [Parameter(Mandatory = $true)][string]$QtRoot,
     [Parameter(Mandatory = $true)][string]$MingwBin,
-    [string]$OutputDir = "dist/CinemaBooking-Windows-x64"
+    [string]$OutputDir = "dist/OOPCinema-Windows-x64"
 )
 $ErrorActionPreference = 'Stop'
 $build = (Resolve-Path -LiteralPath $BuildDir).Path
 $qt = (Resolve-Path -LiteralPath $QtRoot).Path
 $mingw = (Resolve-Path -LiteralPath $MingwBin).Path
 $exe = Join-Path $build 'cinema_booking_qt.exe'
+$v2exe = Join-Path $build 'oop_cinema_qt.exe'
 $deploy = Join-Path $qt 'bin/windeployqt.exe'
-if (-not (Test-Path -LiteralPath $exe) -or -not (Test-Path -LiteralPath $deploy)) {
+if (-not (Test-Path -LiteralPath $exe) -or -not (Test-Path -LiteralPath $v2exe) -or
+    -not (Test-Path -LiteralPath $deploy)) {
     throw 'Build Qt Release and provide the matching Qt root before packaging.'
 }
 $out = [IO.Path]::GetFullPath($OutputDir)
+$safeRoot = [IO.Path]::GetFullPath('dist') + [IO.Path]::DirectorySeparatorChar
+if (-not $out.StartsWith($safeRoot, [StringComparison]::OrdinalIgnoreCase)) {
+    throw 'OutputDir must be inside the repository dist directory.'
+}
 if (Test-Path -LiteralPath $out) { Remove-Item -LiteralPath $out -Recurse -Force }
 New-Item -ItemType Directory -Path $out | Out-Null
 Copy-Item -LiteralPath $exe -Destination $out
+Copy-Item -LiteralPath $v2exe -Destination $out
+Copy-Item -LiteralPath (Join-Path $build 'v2-data') -Destination $out -Recurse
+Copy-Item -LiteralPath (Join-Path $build 'assets') -Destination $out -Recurse
 $oldPath = $env:Path
 try {
     $env:Path = "$(Join-Path $qt 'bin');$mingw;$oldPath"
-    & $deploy --release --no-translations --dir $out (Join-Path $out 'cinema_booking_qt.exe')
+    & $deploy --release --no-translations --dir $out (Join-Path $out 'oop_cinema_qt.exe')
     if ($LASTEXITCODE -ne 0) { throw "windeployqt failed: $LASTEXITCODE" }
 } finally { $env:Path = $oldPath }
 foreach ($name in @('libstdc++-6.dll', 'libgcc_s_seh-1.dll', 'libwinpthread-1.dll')) {
@@ -35,7 +44,7 @@ if (-not (Test-Path -LiteralPath (Join-Path $out 'platforms/qwindows.dll'))) {
 $savedPath = $env:Path
 try {
     $env:Path = "$env:SystemRoot/System32;$env:SystemRoot"
-    $process = Start-Process -FilePath (Join-Path $out 'cinema_booking_qt.exe') `
+    $process = Start-Process -FilePath (Join-Path $out 'oop_cinema_qt.exe') `
         -WorkingDirectory $out -WindowStyle Hidden -PassThru
     if ($process.WaitForExit(3000)) {
         throw "Packaged GUI exited early with code $($process.ExitCode)."

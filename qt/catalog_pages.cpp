@@ -13,7 +13,7 @@ HomePage::HomePage(UiSession& session, UiCallbacks callbacks, QWidget* parent)
     hero->setObjectName("hero");
     auto* heroLayout = new QVBoxLayout(hero);
     heroLayout->setContentsMargins(30, 24, 30, 24);
-    auto* badge = mutedLabel("CINEMA BOOKING  •  BẢN DEMO", hero);
+    auto* badge = mutedLabel("OOP CINEMA  •  BẢN DEMO", hero);
     heroLayout->addWidget(badge);
     auto* headline = new QLabel("Chỗ ngồi đẹp. Trải nghiệm hay.", hero);
     headline->setObjectName("heroTitle");

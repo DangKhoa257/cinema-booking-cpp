@@ -37,6 +37,6 @@ jobs:
       - name: Upload ZIP
         uses: actions/upload-artifact@v4
         with:
-          name: CinemaBooking-Windows-x64
-          path: dist/CinemaBooking-Windows-x64.zip
+          name: OOPCinema-Windows-x64
+          path: dist/OOPCinema-Windows-x64.zip
           if-no-files-found: error
