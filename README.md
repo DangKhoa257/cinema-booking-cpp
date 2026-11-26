@@ -1,6 +1,6 @@
 # OOP Cinema 2.0 — C++17 và Qt 6
 
-> **OOP Cinema 2.0:** Ứng dụng Qt mới `oop_cinema_qt` đã nối [bảy phim thật](docs/MOVIE_DATA_V2.md), [cụm rạp/phòng demo](docs/CINEMA_V2_DATA.md) và luồng đặt vé xuyên suốt. Xem [hướng dẫn GUI V2](docs/OOP_CINEMA_V2_GUI.md). Console và Qt V1 vẫn chạy độc lập.
+> **OOP Cinema 2.0:** Ứng dụng Qt `oop_cinema_qt` hiển thị [chín phim có poster do TV1 cung cấp](docs/MOVIE_DATA_V2.md), [cụm rạp/phòng demo](docs/CINEMA_V2_DATA.md) và luồng đặt vé xuyên suốt. Hai phim không có poster vẫn được giữ để đọc vé cũ. Xem [hướng dẫn GUI V2](docs/OOP_CINEMA_V2_GUI.md). Console và Qt V1 vẫn chạy độc lập.
 
 Ứng dụng console C++17 và giao diện Qt 6 Widgets tùy chọn cho bài tập lớn OOP của nhóm hiện có 5 thành viên. Cả hai giao diện đều xem phim/suất/phòng, đăng ký khách, đặt/hủy vé, thanh toán mô phỏng và lưu/tải dữ liệu. Chuyển khoản demo luôn giữ vé `Pending`, không xác nhận đã nhận tiền thật.
 
@@ -34,6 +34,6 @@ Khi thoát, tải bản khác hoặc chuyển thư mục mà còn thay đổi, �
 
 ## Bản Windows x64
 
-Trên trang Actions của PR, tải artifact `OOPCinema-Windows-x64` rồi giải nén ZIP. Mở `OOPCinema-Windows-x64/oop_cinema_qt.exe`; giữ các DLL, thư mục `platforms`, `assets` và `v2-data` cạnh file exe. ZIP vẫn có `cinema_booking_qt.exe` của GUI V1. Bản ZIP chứa runtime Qt/MinGW, không cần cài Qt trên máy nhận. Hướng dẫn build và đóng gói: [WINDOWS_PACKAGE.md](docs/WINDOWS_PACKAGE.md). Ảnh giao diện Qt Windows thật: [trang chủ V2](docs/screenshots/oop-v2-home-1120x760.jpg), [lưới phim](docs/screenshots/oop-v2-posters-860x620.jpg), [chọn rạp](docs/screenshots/oop-v2-branches-1120x760.jpg), [sơ đồ ghế](docs/screenshots/oop-v2-seats-selected-1120x760.jpg), [bắp nước](docs/screenshots/oop-v2-concessions-1120x760.jpg), [checkout](docs/screenshots/oop-v2-checkout-1120x760.jpg) và [vé điện tử](docs/screenshots/oop-v2-ticket-1120x760.jpg).
+Trên trang Actions của PR, tải artifact `OOPCinema-Windows-x64` rồi giải nén ZIP. Mở `OOPCinema-Windows-x64/oop_cinema_qt.exe`; giữ các DLL, thư mục `platforms`, `assets` (gồm `posters`) và `v2-data` cạnh file exe. ZIP vẫn có `cinema_booking_qt.exe` của GUI V1. Bản ZIP chứa runtime Qt/MinGW, không cần cài Qt trên máy nhận. Hướng dẫn build và đóng gói: [WINDOWS_PACKAGE.md](docs/WINDOWS_PACKAGE.md). Ảnh giao diện Qt Windows thật mới: [trang chủ có poster](docs/screenshots/oop-v2-posters-home-1120x760.jpg) và [chi tiết phim](docs/screenshots/oop-v2-posters-detail-1120x760.jpg). Ảnh kiểm thử luồng cũ: [chọn rạp](docs/screenshots/oop-v2-branches-1120x760.jpg), [sơ đồ ghế](docs/screenshots/oop-v2-seats-selected-1120x760.jpg), [bắp nước](docs/screenshots/oop-v2-concessions-1120x760.jpg), [checkout](docs/screenshots/oop-v2-checkout-1120x760.jpg) và [vé điện tử](docs/screenshots/oop-v2-ticket-1120x760.jpg).
 
 Đọc [hợp đồng API](docs/API_CONTRACT.md), [kiến trúc](docs/ARCHITECTURE.md) và [quy trình nhóm](docs/TEAM_WORKFLOW.md) trước khi viết chức năng. Không sửa public API một mình.

@@ -53,7 +53,9 @@ if(BUILD_TESTING)
         target_link_libraries(test_v2_session PRIVATE oop_cinema_ui)
         target_compile_definitions(test_v2_session PRIVATE
             MOVIE_DATA_FILE="${CMAKE_CURRENT_SOURCE_DIR}/data/v2/movie_details.txt"
-            CINEMA_DATA_FILE="${CMAKE_CURRENT_SOURCE_DIR}/data/v2/cinema_demo.txt")
+            CINEMA_DATA_FILE="${CMAKE_CURRENT_SOURCE_DIR}/data/v2/cinema_demo.txt"
+            LEGACY_MOVIE_DATA_FILE="${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/v2-before-posters/movie_details.txt"
+            LEGACY_CINEMA_DATA_FILE="${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/v2-before-posters/cinema_demo.txt")
         add_test(NAME test_v2_session COMMAND test_v2_session)
         add_executable(test_v2_qt_navigation tests/test_v2_qt_navigation.cpp)
         target_link_libraries(test_v2_qt_navigation PRIVATE oop_cinema_ui)

@@ -20,7 +20,30 @@ int main(int argc, char* argv[]) {
         V2Session session(QString::fromUtf8(MOVIE_DATA_FILE),
                           QString::fromUtf8(CINEMA_DATA_FILE), folder);
         require(session.ready(), "demo loads");
-        require(session.movies().all().size() == 7, "seven real movies");
+        require(session.movies().all().size() == 11, "nine displayed and two historical movies");
+        require(session.featuredMovies().size() == 9, "nine poster movies are featured");
+        require(!session.isFeaturedMovie(104) && !session.isFeaturedMovie(108),
+                "movies without supplied posters remain historical only");
+        for (const auto& item : session.cinema().schedule().getShowtimes())
+            require(session.isFeaturedMovie(item.getMovieId()),
+                    "new demo schedule uses only poster movies");
+        const QString oldFolder = QDir(temp.path()).filePath("older-snapshot");
+        V2Session oldVersion(QString::fromUtf8(LEGACY_MOVIE_DATA_FILE),
+                             QString::fromUtf8(LEGACY_CINEMA_DATA_FILE), oldFolder);
+        require(oldVersion.ready() && oldVersion.movies().all().size() == 7 &&
+                oldVersion.save(), "old seven-movie snapshot saved");
+        V2Session upgraded(QString::fromUtf8(MOVIE_DATA_FILE),
+                           QString::fromUtf8(CINEMA_DATA_FILE), oldFolder);
+        require(upgraded.ready() && upgraded.movies().all().size() == 11 &&
+                upgraded.featuredMovies().size() == 9,
+                "old snapshot gains new catalog without losing old IDs");
+        const Showtime* historical = upgraded.cinema().schedule().findShowtime(4);
+        require(historical && historical->getMovieId() == 104 &&
+                !upgraded.isFeaturedMovie(104), "old movie schedule retained but hidden");
+        QString blockedCode;
+        require(!upgraded.checkout(4, {"A1"}, std::vector<int>(upgraded.snacks().size(), 0),
+                                  "", "Khách cũ", "0901234567", "old@example.com",
+                                  false, blockedCode), "no new booking for historical movie");
         require(session.cinema().branches().all().size() == 4, "four demo branches");
         for (const auto& room : session.cinema().rooms())
             require(room.getSeats().size() >= 80 && room.getSeats().size() <= 120,

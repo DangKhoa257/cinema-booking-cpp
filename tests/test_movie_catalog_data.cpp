@@ -3,6 +3,7 @@
 
 #include <filesystem>
 #include <iostream>
+#include <set>
 
 int main() {
     MovieDetailsCatalog catalog;
@@ -11,16 +12,18 @@ int main() {
         std::cerr << error << '\n';
         return 1;
     }
-    if (catalog.all().size() < 6 || catalog.all().size() > 10 ||
-        catalog.nowShowing().size() != catalog.all().size() ||
+    if (catalog.all().size() != 11 || catalog.nowShowing().size() != 10 ||
+        catalog.comingSoon().size() != 1 ||
         catalog.searchTitle("Godzilla").size() != 1 ||
         catalog.filterGenre("Hoạt hình").size() != 2) {
         std::cerr << "Seed catalog content or queries are wrong\n";
         return 1;
     }
+    const std::set<int> posterIds{101, 102, 103, 105, 106, 107, 109, 110, 111};
     for (const auto& movie : catalog.all()) {
-        if (movie.sourceUrl.empty() || movie.verifiedAt != "2026-11-25" ||
-            movie.durationMinutes <= 0 || !movie.posterAsset.empty()) {
+        if (movie.sourceUrl.empty() || movie.verifiedAt < "2026-11-25" ||
+            movie.durationMinutes <= 0 ||
+            bool(posterIds.count(movie.movieId)) != !movie.posterAsset.empty()) {
             std::cerr << "Unverified seed movie " << movie.movieId << '\n';
             return 1;
         }

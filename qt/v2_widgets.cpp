@@ -3,14 +3,18 @@
 
 #include <QFrame>
 #include <QDir>
+#include <QGraphicsBlurEffect>
+#include <QGraphicsOpacityEffect>
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QImage>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPixmap>
+#include <QPropertyAnimation>
 #include <QPushButton>
 #include <QRegularExpression>
+#include <QResizeEvent>
 #include <QScrollArea>
 #include <QVBoxLayout>
 
@@ -19,8 +23,127 @@ QString vnd(long long amount) {
         QRegularExpression("(?<=\\d)(?=(\\d{3})+$)"), "."));
 }
 
-QString posterFile(const QString& assets, int movieId) {
-    return QDir(assets).filePath(QString("poster-%1.png").arg(movieId));
+QString posterFile(const QString& assets, const MovieDetails& movie) {
+    return QDir(assets).filePath(QString::fromStdString(movie.posterAsset));
+}
+
+MovieBanner::MovieBanner(const std::vector<const MovieDetails*>& movies,
+                         const QString& assets, QWidget* parent)
+    : QWidget(parent), movies_(movies), assets_(assets) {
+    setObjectName("movieBanner");
+    setFixedHeight(285);
+    background_ = new QLabel(this);
+    background_->setObjectName("bannerBackground");
+    background_->setAlignment(Qt::AlignCenter);
+    background_->setAttribute(Qt::WA_TransparentForMouseEvents);
+    auto* blur = new QGraphicsBlurEffect(background_);
+    blur->setBlurRadius(28);
+    background_->setGraphicsEffect(blur);
+    auto* veil = new QWidget(this);
+    veil->setObjectName("bannerVeil");
+    veil->setAttribute(Qt::WA_TransparentForMouseEvents);
+    foreground_ = new QWidget(this);
+    foreground_->setObjectName("bannerForeground");
+    auto* row = new QHBoxLayout(foreground_);
+    row->setContentsMargins(20, 19, 20, 19);
+    row->setSpacing(18);
+    previous_ = new QPushButton("‹");
+    previous_->setObjectName("bannerPrev");
+    previous_->setFixedWidth(38);
+    row->addWidget(previous_);
+    poster_ = new QLabel;
+    poster_->setObjectName("bannerPoster");
+    poster_->setFixedSize(150, 225);
+    poster_->setAlignment(Qt::AlignCenter);
+    row->addWidget(poster_);
+    auto* copy = new QWidget;
+    auto* words = new QVBoxLayout(copy);
+    words->setContentsMargins(0, 0, 0, 0);
+    words->setSpacing(12);
+    auto* eyebrow = new QLabel("PHIM NỔI BẬT · OOP CINEMA");
+    eyebrow->setObjectName("bannerEyebrow");
+    words->addWidget(eyebrow);
+    title_ = new QLabel;
+    title_->setObjectName("bannerTitle");
+    title_->setWordWrap(true);
+    words->addWidget(title_);
+    facts_ = new QLabel;
+    facts_->setObjectName("bannerFacts");
+    facts_->setWordWrap(true);
+    words->addWidget(facts_);
+    auto* actions = new QHBoxLayout;
+    auto* book = new QPushButton("Đặt vé ngay  →");
+    book->setObjectName("bannerBook");
+    book->setProperty("role", "primary");
+    auto* details = new QPushButton("Xem chi tiết");
+    details->setObjectName("bannerDetails");
+    actions->addWidget(book);
+    actions->addWidget(details);
+    actions->addStretch();
+    words->addLayout(actions);
+    words->addStretch();
+    row->addWidget(copy, 1);
+    next_ = new QPushButton("›");
+    next_->setObjectName("bannerNext");
+    next_->setFixedWidth(38);
+    row->addWidget(next_);
+    background_->lower();
+    veil->raise();
+    foreground_->raise();
+    connect(previous_, &QPushButton::clicked, this,
+            [this] { showIndex((index_ + int(movies_.size()) - 1) % int(movies_.size())); });
+    connect(next_, &QPushButton::clicked, this,
+            [this] { showIndex((index_ + 1) % int(movies_.size())); });
+    connect(book, &QPushButton::clicked, this,
+            [this] { if (onBook_) onBook_(currentMovieId()); });
+    connect(details, &QPushButton::clicked, this,
+            [this] { if (onDetails_) onDetails_(currentMovieId()); });
+    previous_->setVisible(movies_.size() > 1);
+    next_->setVisible(movies_.size() > 1);
+    showIndex(0);
+}
+
+int MovieBanner::currentMovieId() const {
+    return movies_.empty() ? 0 : movies_[index_]->movieId;
+}
+
+void MovieBanner::showIndex(int index) {
+    if (movies_.empty()) return;
+    index_ = index;
+    const MovieDetails& movie = *movies_[index_];
+    const QPixmap art(posterFile(assets_, movie));
+    poster_->setPixmap(art.scaled(poster_->size(), Qt::KeepAspectRatio,
+                                  Qt::SmoothTransformation));
+    poster_->setAccessibleName("Poster phim " + QString::fromStdString(movie.title));
+    title_->setText(QString::fromStdString(movie.title));
+    facts_->setText(QString("%1  ·  %2 phút  ·  %3")
+        .arg(QString::fromStdString(movie.genre)).arg(movie.durationMinutes)
+        .arg(movie.ageRating.empty() ? "Chưa phân loại" :
+             QString::fromStdString(movie.ageRating)));
+    refreshBackground();
+    auto* opacity = new QGraphicsOpacityEffect(foreground_);
+    foreground_->setGraphicsEffect(opacity);
+    auto* fade = new QPropertyAnimation(opacity, "opacity", foreground_);
+    fade->setDuration(220);
+    fade->setStartValue(0.35);
+    fade->setEndValue(1.0);
+    fade->start(QAbstractAnimation::DeleteWhenStopped);
+}
+
+void MovieBanner::refreshBackground() {
+    if (movies_.empty()) return;
+    const QPixmap art(posterFile(assets_, *movies_[index_]));
+    if (!art.isNull() && !background_->size().isEmpty())
+        background_->setPixmap(art.scaled(background_->size(),
+            Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
+}
+
+void MovieBanner::resizeEvent(QResizeEvent* event) {
+    QWidget::resizeEvent(event);
+    background_->setGeometry(rect());
+    if (auto* veil = findChild<QWidget*>("bannerVeil")) veil->setGeometry(rect());
+    foreground_->setGeometry(rect());
+    refreshBackground();
 }
 
 namespace {
@@ -43,11 +166,11 @@ QWidget* posterCard(const MovieDetails& movie, const QString& assets,
     image->setObjectName("posterImage");
     image->setFixedHeight(230);
     image->setAlignment(Qt::AlignCenter);
-    QPixmap poster(posterFile(assets, movie.movieId));
-    if (!poster.isNull()) image->setPixmap(poster.scaled(190, 230,
-                                    Qt::KeepAspectRatioByExpanding,
+    QPixmap poster(posterFile(assets, movie));
+    if (!poster.isNull()) image->setPixmap(poster.scaled(154, 230,
+                                    Qt::KeepAspectRatio,
                                     Qt::SmoothTransformation));
-    else image->setText("OOP CINEMA\nHình minh họa");
+    else image->setText("Không mở được poster");
     box->addWidget(image);
     auto* title = textLabel(QString::fromStdString(movie.title), "cardTitle");
     title->setMinimumHeight(42);
@@ -72,7 +195,7 @@ MovieGallery::MovieGallery(const V2Session& session, const QString& assets, QWid
     : QWidget(parent), session_(session), assets_(assets) {
     auto* root = new QVBoxLayout(this);
     root->setSpacing(20);
-    auto* heading = textLabel("PHIM ĐANG CHIẾU", "eyebrow");
+    auto* heading = textLabel("PHIM CÓ LỊCH CHIẾU", "eyebrow");
     root->addWidget(heading);
     root->addWidget(textLabel("Chọn câu chuyện cho buổi hẹn của bạn", "sectionTitle"));
     auto* search = new QLineEdit;
@@ -92,9 +215,9 @@ MovieGallery::MovieGallery(const V2Session& session, const QString& assets, QWid
             delete item;
         }
         int index = 0;
-        for (const auto& movie : session_.movies().all()) {
-            if (!QString::fromStdString(movie.title).contains(query, Qt::CaseInsensitive)) continue;
-            grid->addWidget(posterCard(movie, assets_, [this](int id) {
+        for (const auto* movie : session_.featuredMovies()) {
+            if (!QString::fromStdString(movie->title).contains(query, Qt::CaseInsensitive)) continue;
+            grid->addWidget(posterCard(*movie, assets_, [this](int id) {
                 if (onMovie_) onMovie_(id);
             }), index / 4, index % 4);
             ++index;
@@ -123,11 +246,11 @@ SeatMapWidget::SeatMapWidget(const V2Session& session, int showtimeId, QWidget* 
     grid_->setContentsMargins(0, 0, 0, 0);
     root->addWidget(host, 0, Qt::AlignHCenter);
     auto* legend = textLabel(
-        "<span style='color:#66b7aa'>■</span> Trống &nbsp; "
-        "<span style='color:#deb478'>■</span> VIP &nbsp; "
-        "<span style='color:#7b8195'>■</span> Đang giữ &nbsp; "
-        "<span style='color:#765168'>■</span> Đã đặt &nbsp; "
-        "<span style='color:#f4757a'>■</span> Đang chọn", "seatLegend");
+        "<span style='color:#d69b69'>■</span> Trống &nbsp; "
+        "<span style='color:#cf641e'>■</span> VIP &nbsp; "
+        "<span style='color:#a6a09a'>■</span> Đang giữ &nbsp; "
+        "<span style='color:#bf8584'>■</span> Đã đặt &nbsp; "
+        "<span style='color:#ed6b21'>■</span> Đang chọn", "seatLegend");
     legend->setAlignment(Qt::AlignCenter);
     root->addWidget(legend);
     refresh();

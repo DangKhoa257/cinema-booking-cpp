@@ -7,6 +7,7 @@
 
 #include <QString>
 #include <memory>
+#include <set>
 #include <vector>
 
 struct SnackItem {
@@ -48,6 +49,8 @@ public:
     const QString& notice() const { return notice_; }
     const QString& storageDirectory() const { return directory_; }
     const MovieDetailsCatalog& movies() const { return movies_; }
+    std::vector<const MovieDetails*> featuredMovies() const;
+    bool isFeaturedMovie(int movieId) const;
     const CinemaV2& cinema() const { return cinema_; }
     const std::vector<Ticket>& tickets() const { return tickets_; }
     const std::vector<CinemaOrder>& orders() const { return orders_; }
@@ -83,6 +86,7 @@ private:
     QString error_;
     QString notice_;
     MovieDetailsCatalog movies_;
+    std::set<int> featuredIds_;
     CinemaV2 cinema_;
     UserManager users_;
     std::vector<Ticket> tickets_;

@@ -75,9 +75,9 @@ V2Window::V2Window(const QString& movieFile, const QString& cinemaFile,
     auto* bar = new QHBoxLayout(header);
     bar->setContentsMargins(32, 13, 32, 13);
     bar->setSpacing(24);
-    auto* brand = label("OOP <font color='#f4757a'>CINEMA</font>", "brand");
+    auto* brand = label("OOP <font color='#e85c17'>CINEMA</font> 2.0", "brand");
     bar->addWidget(brand);
-    homeNav_ = action("Phim đang chiếu");
+    homeNav_ = action("Danh mục phim");
     ticketsNav_ = action("Vé của tôi");
     homeNav_->setProperty("role", "nav");
     ticketsNav_->setProperty("role", "nav");
@@ -110,41 +110,47 @@ V2Window::V2Window(const QString& movieFile, const QString& cinemaFile,
     setCentralWidget(shell);
 
     setStyleSheet(R"(
-        QWidget#shell, QWidget#pageBody, QScrollArea#pageScroll {background:#0a101b;color:#f6f1e9;}
-        QFrame#topBar {background:#101b2a;border-bottom:1px solid #34465a;}
-        QLabel[kind="brand"] {font-size:22px;font-weight:900;letter-spacing:2px;}
-        QLabel[kind="demoBadge"] {color:#e8bd81;font-size:11px;font-weight:800;letter-spacing:1px;}
-        QPushButton {background:#21354b;color:#f6f1e9;border:1px solid #496177;border-radius:9px;padding:10px 16px;font-weight:600;}
-        QPushButton:hover {background:#34516a;border-color:#9bb2c8;}
-        QPushButton:disabled {color:#788898;background:#182331;border-color:#344252;}
-        QPushButton[role="primary"] {background:#f4757a;color:#1c1b24;border-color:#f4757a;font-weight:800;}
-        QPushButton[role="primary"]:hover {background:#ff9296;}
-        QPushButton[role="primary"]:disabled {background:#563b47;color:#a98d92;border-color:#76505b;}
-        QPushButton[role="nav"] {background:transparent;border:0;border-radius:0;color:#c5d0dc;padding:12px 8px;}
-        QPushButton[role="navActive"] {background:transparent;border:0;border-bottom:2px solid #f4757a;border-radius:0;color:white;padding:12px 8px;}
-        QLabel[kind="eyebrow"] {color:#e8bd81;font-size:11px;font-weight:800;letter-spacing:2px;}
-        QLabel[kind="sectionTitle"] {font-size:30px;font-weight:800;color:#fff;}
-        QLabel[kind="heroTitle"] {font-size:36px;font-weight:900;color:#fff;}
-        QLabel[kind="muted"], QLabel[kind="seatLegend"] {color:#b2c0ce;}
-        QLabel[kind="price"] {font-size:20px;font-weight:800;color:#f5bd83;}
-        QLabel[kind="bookingCode"] {font-size:21px;font-weight:900;color:#7de0c1;}
-        QLabel[kind="status"] {background:#142338;color:#c9d9e7;padding:5px 28px;font-size:12px;}
-        QLabel[kind="screen"] {background:#23405a;color:#c2e3f1;border-bottom:3px solid #8ab4c9;border-radius:4px;padding:11px;letter-spacing:5px;font-weight:800;}
-        QLabel[kind="rowLabel"] {color:#cbd8e5;font-weight:800;}
-        QFrame#panel, QWidget#ticketCard {background:#142236;border:1px solid #34465a;border-radius:17px;}
-        QFrame#movieCard {background:#142236;border:1px solid #34465a;border-radius:13px;}
-        QLabel#posterImage {background:#20364d;border-radius:9px;}
-        QLabel[kind="cardTitle"] {font-size:16px;font-weight:800;color:#fff;margin-left:9px;margin-right:9px;}
+        QWidget#shell, QWidget#pageBody, QScrollArea#pageScroll {background:#fff8f0;color:#2d211d;}
+        QFrame#topBar {background:#fff3e7;border-bottom:1px solid #edd1bb;}
+        QLabel[kind="brand"] {font-size:22px;font-weight:900;letter-spacing:2px;color:#2d211d;}
+        QLabel[kind="demoBadge"] {color:#a65b2a;font-size:11px;font-weight:800;letter-spacing:1px;}
+        QPushButton {background:#fff8f0;color:#593823;border:1px solid #ddb894;border-radius:9px;padding:10px 16px;font-weight:600;}
+        QPushButton:hover {background:#ffead7;border-color:#df7d36;}
+        QPushButton:disabled {color:#a99a8c;background:#f5eee7;border-color:#e4d9cd;}
+        QPushButton[role="primary"] {background:#e85c17;color:white;border-color:#e85c17;font-weight:800;}
+        QPushButton[role="primary"]:hover {background:#f47724;}
+        QPushButton[role="primary"]:disabled {background:#e4b798;color:#fff5ee;border-color:#e4b798;}
+        QPushButton[role="nav"] {background:transparent;border:0;border-radius:0;color:#5e5148;padding:12px 8px;}
+        QPushButton[role="navActive"] {background:transparent;border:0;border-bottom:2px solid #e85c17;border-radius:0;color:#c84910;padding:12px 8px;}
+        QLabel[kind="eyebrow"] {color:#ae541f;font-size:11px;font-weight:800;letter-spacing:2px;}
+        QLabel[kind="sectionTitle"] {font-size:30px;font-weight:800;color:#2d211d;}
+        QLabel[kind="muted"], QLabel[kind="seatLegend"] {color:#76655b;}
+        QLabel[kind="price"] {font-size:20px;font-weight:800;color:#b94612;}
+        QLabel[kind="bookingCode"] {font-size:21px;font-weight:900;color:#a64216;}
+        QLabel[kind="status"] {background:#fcebd9;color:#69452c;padding:5px 28px;font-size:12px;}
+        QLabel[kind="screen"] {background:#f7d9ba;color:#8e461e;border-bottom:3px solid #d9702e;border-radius:4px;padding:11px;letter-spacing:5px;font-weight:800;}
+        QLabel[kind="rowLabel"] {color:#704b34;font-weight:800;}
+        QFrame#panel, QWidget#ticketCard {background:#fffdf9;border:1px solid #ebd4bf;border-radius:17px;}
+        QFrame#movieCard {background:#fffdf9;border:1px solid #ebd4bf;border-radius:13px;}
+        QLabel#posterImage {background:#f3e4d4;border-radius:9px;}
+        QLabel[kind="cardTitle"] {font-size:16px;font-weight:800;color:#2d211d;margin-left:9px;margin-right:9px;}
         QLabel[kind="muted"] {margin-left:3px;}
-        QLabel#heroImage {border-radius:20px;background:#1b3043;}
-        QLineEdit, QComboBox, QSpinBox {background:#0d1928;color:#fff;border:1px solid #53677a;border-radius:8px;padding:9px;min-height:20px;}
-        QComboBox QAbstractItemView {background:#142236;color:#fff;selection-background-color:#34516a;}
-        QPushButton[seatState="available"] {background:#244b55;border-color:#66b7aa;color:#e6fff5;padding:0;}
-        QPushButton[seatState="vip"] {background:#66513f;border-color:#deb478;color:#fff4dc;padding:0;}
-        QPushButton[seatState="selected"] {background:#f4757a;border-color:#ffb2a9;color:#1b1720;padding:0;}
-        QPushButton[seatState="held"] {background:#4c4c63;border-color:#7b8195;color:#c9d0dc;padding:0;}
-        QPushButton[seatState="booked"] {background:#402d3d;border-color:#765168;color:#bb9eb2;padding:0;}
-        QRadioButton {spacing:8px;color:#ecf2f7;}
+        QWidget#movieBanner {background:#f5e2cf;border:1px solid #e8bf9d;border-radius:17px;}
+        QWidget#bannerVeil {background:qlineargradient(x1:0,y1:0,x2:1,y2:0,stop:0 rgba(255,247,237,140),stop:0.55 rgba(255,247,237,223),stop:1 rgba(255,247,237,185));border-radius:17px;}
+        QWidget#bannerForeground {background:transparent;}
+        QLabel#bannerEyebrow {color:#a84b17;font-size:11px;font-weight:800;letter-spacing:1px;}
+        QLabel#bannerTitle {font-size:27px;font-weight:900;color:#31211a;}
+        QLabel#bannerFacts {font-size:14px;color:#6b4a36;}
+        QLabel#bannerPoster {background:transparent;}
+        QPushButton#bannerPrev, QPushButton#bannerNext {font-size:26px;padding:0;background:#fffaf4;}
+        QLineEdit, QComboBox, QSpinBox {background:#fffdf9;color:#33241d;border:1px solid #d9b99f;border-radius:8px;padding:9px;min-height:20px;}
+        QComboBox QAbstractItemView {background:#fffaf4;color:#33241d;selection-background-color:#ffddbd;}
+        QPushButton[seatState="available"] {background:#ffe4cb;border-color:#d69b69;color:#563a29;padding:0;}
+        QPushButton[seatState="vip"] {background:#f6b269;border-color:#cf641e;color:#4e240d;padding:0;}
+        QPushButton[seatState="selected"] {background:#ed6b21;border-color:#c94d12;color:white;padding:0;}
+        QPushButton[seatState="held"] {background:#c5c0bb;border-color:#a6a09a;color:#564f48;padding:0;}
+        QPushButton[seatState="booked"] {background:#e7bbbb;border-color:#bf8584;color:#6f4140;padding:0;}
+        QRadioButton {spacing:8px;color:#3a2920;}
     )");
     if (!session_.ready()) {
         status_->setText("Lỗi dữ liệu: " + session_.error());
@@ -176,26 +182,15 @@ void V2Window::showHome() {
     auto* root = new QVBoxLayout(page);
     root->setContentsMargins(0, 0, 0, 0);
     root->setSpacing(24);
-    auto* hero = panel();
-    auto* heroLayout = new QHBoxLayout(hero);
-    heroLayout->setContentsMargins(32, 22, 0, 22);
-    auto* copy = new QWidget;
-    auto* copyLayout = new QVBoxLayout(copy);
-    copyLayout->setSpacing(15);
-    copyLayout->addWidget(label("CHÀO MỪNG ĐẾN OOP CINEMA 2.0", "eyebrow"));
-    copyLayout->addWidget(label("Chọn phim hay.\nGiữ ghế đẹp.\nTận hưởng khoảnh khắc.", "heroTitle"));
-    copyLayout->addWidget(label("Bảy phim có thật trong danh mục. Rạp, suất chiếu và thanh toán là dữ liệu demo nội bộ OOP Cinema.", "muted"));
-    auto* explore = action("Khám phá phim bên dưới  ↓", true);
-    copyLayout->addWidget(explore, 0, Qt::AlignLeft);
-    copyLayout->addStretch();
-    heroLayout->addWidget(copy, 1);
-    auto* heroImage = new QLabel;
-    heroImage->setObjectName("heroImage");
-    QPixmap art(QDir(assets_).filePath("hero-cinema.png"));
-    if (!art.isNull()) heroImage->setPixmap(art.scaled(350, 255, Qt::KeepAspectRatioByExpanding,
-                                                     Qt::SmoothTransformation));
-    heroImage->setFixedSize(350, 255);
-    heroLayout->addWidget(heroImage);
+    auto* hero = new MovieBanner(session_.featuredMovies(), assets_);
+    hero->setOnDetails([this](int id) { branchId_ = 0; showMovie(id); });
+    hero->setOnBook([this](int id) {
+        branchId_ = 0;
+        showMovie(id);
+        if (auto* branch = content_->findChild<QComboBox*>("branchSelect"))
+            if (auto* scroll = qobject_cast<QScrollArea*>(content_->parentWidget()->parentWidget()))
+                scroll->ensureWidgetVisible(branch);
+    });
     root->addWidget(hero);
 
     auto* quick = panel();
@@ -205,8 +200,8 @@ void V2Window::showHome() {
     quickLayout->addWidget(label("ĐẶT VÉ NHANH", "eyebrow"));
     auto* movieBox = new QComboBox;
     movieBox->addItem("Chọn phim", 0);
-    for (const auto& movie : session_.movies().all())
-        movieBox->addItem(QString::fromStdString(movie.title), movie.movieId);
+    for (const auto* movie : session_.featuredMovies())
+        movieBox->addItem(QString::fromStdString(movie->title), movie->movieId);
     auto* branchBox = new QComboBox;
     branchBox->addItem("Chọn rạp", 0);
     for (const auto& branch : session_.cinema().branches().all())
@@ -225,31 +220,29 @@ void V2Window::showHome() {
     auto* gallery = new MovieGallery(session_, assets_);
     gallery->setOnMovie([this](int id) { branchId_ = 0; showMovie(id); });
     root->addWidget(gallery);
-    connect(explore, &QPushButton::clicked, this, [this, gallery] {
-        if (auto* scroll = qobject_cast<QScrollArea*>(content_->parentWidget()->parentWidget()))
-            scroll->ensureWidgetVisible(gallery);
-    });
     setContent(page, "home");
 }
 
 void V2Window::showMovie(int movieId) {
     movieId_ = movieId;
     const MovieDetails* movie = session_.movies().find(movieId);
-    if (!movie) { showHome(); return; }
+    if (!movie || !session_.isFeaturedMovie(movieId)) { showHome(); return; }
     auto* page = new QWidget;
     auto* root = new QVBoxLayout(page);
     root->setSpacing(19);
     auto* back = action("← Danh sách phim");
     connect(back, &QPushButton::clicked, this, [this] { showHome(); });
     root->addWidget(back, 0, Qt::AlignLeft);
+    auto* detailBanner = new MovieBanner({movie}, assets_);
+    root->addWidget(detailBanner);
     auto* info = panel();
     auto* row = new QHBoxLayout(info);
     row->setContentsMargins(22, 22, 22, 22);
     row->setSpacing(25);
     auto* poster = new QLabel;
     poster->setFixedSize(205, 290);
-    QPixmap art(posterFile(assets_, movieId));
-    if (!art.isNull()) poster->setPixmap(art.scaled(poster->size(), Qt::KeepAspectRatioByExpanding,
+    QPixmap art(posterFile(assets_, *movie));
+    if (!art.isNull()) poster->setPixmap(art.scaled(poster->size(), Qt::KeepAspectRatio,
                                                    Qt::SmoothTransformation));
     row->addWidget(poster);
     auto* details = new QWidget;
@@ -266,14 +259,13 @@ void V2Window::showMovie(int movieId) {
     if (!movie->director.empty()) detailLayout->addWidget(label("Đạo diễn: " + QString::fromStdString(movie->director)));
     if (!movie->cast.empty()) detailLayout->addWidget(label("Diễn viên: " + QString::fromStdString(movie->cast)));
     detailLayout->addWidget(label(QString::fromStdString(movie->synopsis), "muted"));
-    detailLayout->addWidget(label("Nguồn phim: " + QString::fromStdString(movie->sourceUrl) +
-                                   "  •  Xác minh " + QString::fromStdString(movie->verifiedAt), "muted"));
     detailLayout->addStretch();
     row->addWidget(details, 1);
     root->addWidget(info);
     root->addWidget(label("CHỌN CỤM RẠP & SUẤT CHIẾU", "eyebrow"));
     root->addWidget(label("Lịch chiếu dưới đây là dữ liệu mô phỏng của OOP Cinema.", "muted"));
     auto* branchBox = new QComboBox;
+    branchBox->setObjectName("branchSelect");
     for (const auto& branch : session_.cinema().branches().all())
         branchBox->addItem(QString::fromStdString(branch.name), branch.id);
     for (int i = 0; i < branchBox->count(); ++i)
@@ -282,6 +274,12 @@ void V2Window::showMovie(int movieId) {
     auto* showsHost = new QWidget;
     auto* showsLayout = new QVBoxLayout(showsHost);
     root->addWidget(showsHost);
+    auto scrollTo = [this](QWidget* target) {
+        if (auto* scroll = qobject_cast<QScrollArea*>(content_->parentWidget()->parentWidget()))
+            scroll->ensureWidgetVisible(target);
+    };
+    detailBanner->setOnBook([scrollTo, branchBox](int) { scrollTo(branchBox); });
+    detailBanner->setOnDetails([scrollTo, info](int) { scrollTo(info); });
     auto populate = [this, movieId, branchBox, showsLayout] {
         while (QLayoutItem* item = showsLayout->takeAt(0)) {
             delete item->widget(); delete item;

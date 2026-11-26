@@ -83,6 +83,9 @@ bool V2Session::loadDemo() {
     }
     booking_.reset();
     movies_ = std::move(movies);
+    featuredIds_.clear();
+    for (const auto& movie : movies_.all())
+        if (!movie.posterAsset.empty()) featuredIds_.insert(movie.movieId);
     cinema_ = std::move(cinema);
     users_ = UserManager{};
     tickets_.clear();
@@ -91,6 +94,17 @@ bool V2Session::loadDemo() {
     error_.clear();
     dirty_ = true;
     return true;
+}
+
+std::vector<const MovieDetails*> V2Session::featuredMovies() const {
+    std::vector<const MovieDetails*> result;
+    for (const auto& movie : movies_.all())
+        if (isFeaturedMovie(movie.movieId)) result.push_back(&movie);
+    return result;
+}
+
+bool V2Session::isFeaturedMovie(int movieId) const {
+    return featuredIds_.count(movieId) != 0 && movies_.find(movieId) != nullptr;
 }
 
 SeatStatus V2Session::seatStatus(int showtimeId, const std::string& seatId) const {
@@ -133,7 +147,8 @@ bool V2Session::checkout(int showtimeId, const std::vector<std::string>& seatIds
     const Showtime* show = cinema_.schedule().findShowtime(showtimeId);
     const CinemaBranch* branch = show ? cinema_.branches().findByRoom(show->getRoomId()) : nullptr;
     const long long food = snackTotal(quantities);
-    if (!ready_ || !show || !branch || !cinema_.isBookable(showtimeId) ||
+    if (!ready_ || !show || !branch || !isFeaturedMovie(show->getMovieId()) ||
+        !cinema_.isBookable(showtimeId) ||
         seatIds.empty() || seatIds.size() > 8 || food < 0 ||
         buyer.trimmed().size() < 2 || phone.trimmed().size() < 9 ||
         !email.contains('@')) {
@@ -340,6 +355,10 @@ bool V2Session::load() {
     std::vector<Customer> customers;
     std::vector<Ticket> tickets;
     std::vector<CinemaOrder> orders;
+    MovieDetailsCatalog currentCatalog;
+    if (!currentCatalog.load(nativePath(movieFile_), coreError)) {
+        error_ = moneyError(coreError); return false;
+    }
     if (!movies.load(nativePath(fileAt(directory_, "movie_details.txt")), coreError) ||
         !cinema.load(nativePath(fileAt(directory_, "cinema_v2.txt")), movies, coreError)) {
         error_ = moneyError(coreError); return false;
@@ -388,8 +407,24 @@ bool V2Session::load() {
             error_ = "Tổng tiền hoặc ưu đãi trong đơn không hợp lệ."; return false;
         }
     }
+    // Giữ metadata/ID lịch sử; thêm phim mới và poster hiện tại mà không đổi thời lượng
+    // của phim đã có suất trong bản lưu cũ.
+    MovieDetailsCatalog combined;
+    for (const auto& saved : movies.all()) {
+        MovieDetails record = saved;
+        if (const auto* current = currentCatalog.find(saved.movieId))
+            record.posterAsset = current->posterAsset;
+        if (!combined.add(record, coreError)) { error_ = moneyError(coreError); return false; }
+    }
+    for (const auto& current : currentCatalog.all())
+        if (!combined.find(current.movieId) && !combined.add(current, coreError)) {
+            error_ = moneyError(coreError); return false;
+        }
     booking_.reset();
-    movies_ = std::move(movies);
+    movies_ = std::move(combined);
+    featuredIds_.clear();
+    for (const auto& current : currentCatalog.all())
+        if (!current.posterAsset.empty()) featuredIds_.insert(current.movieId);
     cinema_ = std::move(cinema);
     users_ = std::move(users);
     tickets_ = std::move(tickets);

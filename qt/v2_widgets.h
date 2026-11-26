@@ -7,9 +7,38 @@
 
 class QGridLayout;
 class QLabel;
+class QPushButton;
+class QResizeEvent;
+
+// Banner dùng poster dọc của chính phim, nền mờ chỉ là bản phóng của cùng ảnh.
+class MovieBanner : public QWidget {
+public:
+    MovieBanner(const std::vector<const MovieDetails*>& movies, const QString& assets,
+                QWidget* parent = nullptr);
+    int currentMovieId() const;
+    void setOnBook(std::function<void(int)> callback) { onBook_ = std::move(callback); }
+    void setOnDetails(std::function<void(int)> callback) { onDetails_ = std::move(callback); }
+protected:
+    void resizeEvent(QResizeEvent* event) override;
+private:
+    void showIndex(int index);
+    void refreshBackground();
+    std::vector<const MovieDetails*> movies_;
+    QString assets_;
+    int index_ = 0;
+    QLabel* background_ = nullptr;
+    QLabel* poster_ = nullptr;
+    QLabel* title_ = nullptr;
+    QLabel* facts_ = nullptr;
+    QWidget* foreground_ = nullptr;
+    QPushButton* previous_ = nullptr;
+    QPushButton* next_ = nullptr;
+    std::function<void(int)> onBook_;
+    std::function<void(int)> onDetails_;
+};
 
 QString vnd(long long amount);
-QString posterFile(const QString& assets, int movieId);
+QString posterFile(const QString& assets, const MovieDetails& movie);
 
 class MovieGallery : public QWidget {
 public:
