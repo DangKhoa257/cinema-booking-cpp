@@ -27,6 +27,12 @@ Tài liệu này chốt chữ ký khai báo trong `include/`. Mọi thành viên
 
 ## TV3 — phòng và ghế
 
+### 4B.2 — cụm rạp và layout V2 (TV1 tích hợp, phối hợp Phương Diễm)
+
+`include/cinema_v2.h` thêm `CinemaBranch` (ID, name, area, address, active, roomIds), `BranchCatalog::add/linkRoom/find/findByRoom/all`, `SeatCategory { Standard, VIP }`, `SeatPosition` (seatId, row, number, column, category), `RoomSeatLayout` (constructor nhận roomId, rowCount, seatsPerRow, aisleAfter, vipFromRow; các getter, `positions`, `find`, `physicalSeats`) và `CinemaV2`. `RoomSeatLayout` từ chối layout ngoài 80–120 ghế, lối đi/hàng VIP sai; lối đi không phải ghế.
+
+`CinemaV2::load(path, const MovieDetailsCatalog&, error, nowVietnam = "")`, `save(path, error) const`, `addShowtime(const Showtime&, const MovieDetailsCatalog&, error)`, `isBookable(showtimeId, nowVietnam = "") const`, `bookTicket(BookingManager&, customerId, showtimeId, seatId, Payment&, nowVietnam = "") const`, `showtimesFor(movieId, branchId, date) const`, `branches`, `rooms`, `layout`, `schedule`, `cleaningMinutes`; hàm tự do `currentVietnamTime()`. Thời gian đều theo `Asia/Ho_Chi_Minh`; tham số `nowVietnam` phục vụ test/điều phối. `load` chỉ thay dữ liệu khi cả file đúng; `save` sao lưu `.bak`. `addShowtime` yêu cầu kết thúc phim khớp thời lượng metadata và cách suất khác cùng phòng ít nhất `cleaningMinutes`. `bookTicket` chặn suất đã bắt đầu rồi chuyển cho `BookingManager` V1 xử lý ghế/vé. File V2 và giới hạn tích hợp ở [CINEMA_V2_DATA.md](CINEMA_V2_DATA.md). Public API V1 của `Seat`, `CinemaRoom`, `Showtime`, `ScheduleManager`, `BookingManager`, `CinemaDataStore` giữ nguyên.
+
 `include/seat.h` — `Seat(char row, int number)`; `char getRow() const`; `int getNumber() const`; `std::string getSeatId() const`; hàm tự do `std::ostream& operator<<(std::ostream&, const Seat&)`. Đây là ghế vật lý, không có trạng thái đặt vé. Hàng `A`–`Z`, số >= 1; constructor từ chối dữ liệu sai.
 
 `include/cinema_room.h` — `CinemaRoom(int id, std::string name, std::vector<Seat> seats)`; `int getId() const`; `const std::string& getName() const`; `const std::vector<Seat>& getSeats() const`; `bool hasSeat(const std::string& seatId) const`; hàm tự do `std::ostream& operator<<(std::ostream&, const CinemaRoom&)`. `hasSeat` chỉ xác nhận vị trí ghế vật lý tồn tại; phòng có id dương, tên không rỗng, ít nhất một ghế và seatId duy nhất. TV3 không cần đọc vé hoặc trạng thái suất chiếu.
