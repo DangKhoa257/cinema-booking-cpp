@@ -22,7 +22,7 @@ MainWindow::MainWindow(const QString& dataDirectory, QWidget* parent)
           QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) :
           dataDirectory) {
     setObjectName("mainWindow");
-    setWindowTitle("Cinema Booking · Demo");
+    setWindowTitle("OOP Cinema · Demo V1");
     resize(1120, 760);
     setMinimumSize(860, 620);
     setStyleSheet(R"QSS(
@@ -126,7 +126,7 @@ MainWindow::MainWindow(const QString& dataDirectory, QWidget* parent)
         });
     }
     side->addStretch();
-    auto* foot = mutedLabel("CINEMA BOOKING\nQt 6 · Bản demo", sidebar);
+    auto* foot = mutedLabel("OOP CINEMA\nQt 6 · Bản demo V1", sidebar);
     side->addWidget(foot);
     shell->addWidget(sidebar);
 

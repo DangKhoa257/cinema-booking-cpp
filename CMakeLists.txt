@@ -28,6 +28,19 @@ if(BUILD_QT_GUI)
         target_link_libraries(cinema_qt_ui PUBLIC cinema_core Qt6::Widgets)
         add_executable(cinema_booking_qt WIN32 qt/main.cpp)
         target_link_libraries(cinema_booking_qt PRIVATE cinema_qt_ui)
+
+        add_library(oop_cinema_ui qt/v2_session.cpp qt/v2_widgets.cpp qt/v2_window.cpp
+                  third_party/qrcodegen/qrcodegen.cpp)
+        target_include_directories(oop_cinema_ui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/qt)
+        target_include_directories(oop_cinema_ui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/third_party/qrcodegen)
+        target_link_libraries(oop_cinema_ui PUBLIC cinema_core Qt6::Widgets)
+        add_executable(oop_cinema_qt WIN32 qt/v2_main.cpp)
+        target_link_libraries(oop_cinema_qt PRIVATE oop_cinema_ui)
+        file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data/v2/movie_details.txt
+                  ${CMAKE_CURRENT_SOURCE_DIR}/data/v2/cinema_demo.txt
+             DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/v2-data)
+        file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/qt/assets/
+             DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/assets)
     else()
         message(WARNING "Qt 6 Widgets not found; building console and tests only")
     endif()
@@ -36,6 +49,20 @@ endif()
 include(CTest)
 if(BUILD_TESTING)
     if(TARGET cinema_booking_qt)
+        add_executable(test_v2_session tests/test_v2_session.cpp)
+        target_link_libraries(test_v2_session PRIVATE oop_cinema_ui)
+        target_compile_definitions(test_v2_session PRIVATE
+            MOVIE_DATA_FILE="${CMAKE_CURRENT_SOURCE_DIR}/data/v2/movie_details.txt"
+            CINEMA_DATA_FILE="${CMAKE_CURRENT_SOURCE_DIR}/data/v2/cinema_demo.txt")
+        add_test(NAME test_v2_session COMMAND test_v2_session)
+        add_executable(test_v2_qt_navigation tests/test_v2_qt_navigation.cpp)
+        target_link_libraries(test_v2_qt_navigation PRIVATE oop_cinema_ui)
+        target_compile_definitions(test_v2_qt_navigation PRIVATE
+            MOVIE_DATA_FILE="${CMAKE_CURRENT_SOURCE_DIR}/data/v2/movie_details.txt"
+            CINEMA_DATA_FILE="${CMAKE_CURRENT_SOURCE_DIR}/data/v2/cinema_demo.txt"
+            ASSET_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}/qt/assets")
+        add_test(NAME test_v2_qt_navigation COMMAND test_v2_qt_navigation)
+        set_tests_properties(test_v2_qt_navigation PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
         add_executable(test_qt_ui tests/test_qt_ui.cpp)
         target_link_libraries(test_qt_ui PRIVATE cinema_qt_ui)
         add_test(NAME test_qt_ui COMMAND test_qt_ui)

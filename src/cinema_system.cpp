@@ -249,7 +249,7 @@ bool CinemaSystem::loadAll(const std::string& directory) {
 }
 
 void CinemaSystem::run() {
-    std::cout << "Cinema Booking - Demo OOP\nKhach demo: ID 1.\n";
+    std::cout << "OOP Cinema - Demo OOP\nKhach demo: ID 1.\n";
     while (true) {
         std::cout << "\n1. Xem phim\n2. Xem suat chieu\n3. Xem phong/ghe\n"
                   << "4. Dang ky khach\n5. Dat ve\n6. Xem ve\n7. Huy ve\n"
