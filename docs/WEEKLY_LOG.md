@@ -12,5 +12,6 @@
 
 | Movie Catalog 4B.1 / 2026-11-25 | Codex theo yêu cầu TV1 | Metadata và catalog V2 riêng; bảy phim có nguồn/ngày kiểm tra; tài liệu định dạng và test | Build C++17 không Qt 14 CTest, Qt Debug/Release 16 CTest mỗi cấu hình | Chưa có quyền poster/trailer; status sẽ lỗi thời; GUI 3C chưa nạp catalog mới | TV1 review PR 4B.1; 4B.2 xử lý cụm rạp/layout theo owner được chốt |
 | Cụm rạp V2 4B.2 / 2026-11-26 | Codex dưới điều phối TV1 | Thêm cụm/phòng/layout Standard/VIP, lịch tương đối, bộ lọc và cổng chặn suất quá giờ; file V2 riêng | Test V2, V1 và ba cấu hình CTest; CI cần kiểm tra sau push | GUI 3C chưa nối V2; file demo tương đối không dùng phục hồi vé; V2 chưa chung snapshot đa file với vé | TV1 review PR; ở 4C nối giao diện qua cổng V2 và điều phối snapshot |
+| Giao diện OOP Cinema 2.0 / 2026-11-26 | Codex dưới điều phối TV1 | Nối V2 vào Qt, luồng khách vãng lai/phim/rạp/ghế/bắp nước/voucher/vé QR; tranh minh họa gốc, lưu/tải riêng V2, ZIP Windows | CTest no Qt 15/15, Qt Debug/Release 19/19; thao tác GUI Windows Pending → Paid → Cancelled, lưu/mở lại; ZIP chạy không có Qt/MinGW trong PATH | Bản lưu V2 vẫn gồm nhiều file; lịch tuyệt đối hết hạn; poster không chính thức | TV1 review PR giao diện, thử ZIP trên máy demo và xác minh tình trạng phim gần ngày trình bày |
 
 Mỗi thành viên gửi cập nhật thật theo tuần. Không điền tiến độ giả cho TV2–TV6.

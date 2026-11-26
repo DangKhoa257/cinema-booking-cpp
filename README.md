@@ -1,6 +1,6 @@
-# OOP Cinema — Cinema Booking C++17
+# OOP Cinema 2.0 — C++17 và Qt 6
 
-> **OOP Cinema 2.0:** [đặc tả đã duyệt](docs/OOP_CINEMA_V2_SPEC.md), [mockup 4A](docs/mockups/oop-cinema-v2.html), [danh mục phim 4B.1](docs/MOVIE_DATA_V2.md) và [cụm rạp/layout 4B.2](docs/CINEMA_V2_DATA.md). Ứng dụng console/Qt chạy thật hiện vẫn là phiên bản 3C; 4C sẽ nối dữ liệu V2 vào GUI.
+> **OOP Cinema 2.0:** Ứng dụng Qt mới `oop_cinema_qt` đã nối [bảy phim thật](docs/MOVIE_DATA_V2.md), [cụm rạp/phòng demo](docs/CINEMA_V2_DATA.md) và luồng đặt vé xuyên suốt. Xem [hướng dẫn GUI V2](docs/OOP_CINEMA_V2_GUI.md). Console và Qt V1 vẫn chạy độc lập.
 
 Ứng dụng console C++17 và giao diện Qt 6 Widgets tùy chọn cho bài tập lớn OOP của nhóm hiện có 5 thành viên. Cả hai giao diện đều xem phim/suất/phòng, đăng ký khách, đặt/hủy vé, thanh toán mô phỏng và lưu/tải dữ liệu. Chuyển khoản demo luôn giữ vé `Pending`, không xác nhận đã nhận tiền thật.
 
@@ -26,7 +26,7 @@ cmake --build build-qt
 ctest --test-dir build-qt --output-on-failure
 ```
 
-Chạy `build-qt/cinema_booking_qt.exe` trên Windows hoặc `build-qt/cinema_booking_qt` trên Linux. Trên Windows, thêm thư mục `bin` của Qt và MinGW tương ứng vào `PATH` khi chạy ngoài Qt Creator. Nếu Qt 6 Widgets không được tìm thấy, CMake báo warning và vẫn build console; không tạo target GUI.
+Chạy `build-qt/oop_cinema_qt.exe` trên Windows hoặc `build-qt/oop_cinema_qt` trên Linux để dùng OOP Cinema 2.0. Có thể thêm `--data-dir <thư-mục>` để chọn nơi lưu demo. Target `cinema_booking_qt` vẫn có cho GUI V1. Trên Windows, thêm thư mục `bin` của Qt và MinGW tương ứng vào `PATH` khi chạy ngoài Qt Creator. Nếu Qt 6 Widgets không được tìm thấy, CMake báo warning và vẫn build console; không tạo target GUI.
 
 Trong GUI, chọn phim → suất → ghế → khách và phương thức demo, kiểm tra dòng xác nhận rồi đặt vé. Thanh phía trên có **Thư mục…**, **Tải**, **Lưu**. Vị trí mặc định do Qt `QStandardPaths::AppDataLocation` cung cấp, nằm ngoài thư mục build; có thể chọn thư mục khác. Khi mở, ứng dụng tự tải bản lưu hợp lệ nếu có file dữ liệu. Nếu thiếu hoặc lỗi file, dữ liệu demo vẫn dùng được và giao diện báo lỗi; không tự ghi đè bản lưu lỗi. Dấu **Chưa lưu** nhắc lưu sau khi đặt/hủy/thanh toán hoặc thêm khách. Xem [kiến trúc Qt](docs/QT_UI.md) để biết phạm vi và cách kiểm thử.
 
@@ -34,6 +34,6 @@ Khi thoát, tải bản khác hoặc chuyển thư mục mà còn thay đổi, �
 
 ## Bản Windows x64
 
-Trên trang Actions của PR, tải artifact `CinemaBooking-Windows-x64` rồi giải nén ZIP. Mở `CinemaBooking-Windows-x64/cinema_booking_qt.exe`; giữ các DLL và thư mục `platforms` cạnh file exe. Bản ZIP chứa runtime Qt/MinGW, không cần cài Qt trên máy nhận. Hướng dẫn build, đóng gói, kiểm tra và khôi phục bản lưu: [WINDOWS_PACKAGE.md](docs/WINDOWS_PACKAGE.md). Ảnh chụp giao diện Qt Windows thật: [trang chủ](docs/screenshots/home-1120x760.png), [sơ đồ ghế 1120×760](docs/screenshots/seat-1120x760.png), [sơ đồ ghế 860×620](docs/screenshots/seat-860x620.png).
+Trên trang Actions của PR, tải artifact `OOPCinema-Windows-x64` rồi giải nén ZIP. Mở `OOPCinema-Windows-x64/oop_cinema_qt.exe`; giữ các DLL, thư mục `platforms`, `assets` và `v2-data` cạnh file exe. ZIP vẫn có `cinema_booking_qt.exe` của GUI V1. Bản ZIP chứa runtime Qt/MinGW, không cần cài Qt trên máy nhận. Hướng dẫn build và đóng gói: [WINDOWS_PACKAGE.md](docs/WINDOWS_PACKAGE.md). Ảnh giao diện Qt Windows thật: [trang chủ V2](docs/screenshots/oop-v2-home-1120x760.png), [poster](docs/screenshots/oop-v2-posters-860x620.png), [sơ đồ ghế](docs/screenshots/oop-v2-seats-860x620.png).
 
 Đọc [hợp đồng API](docs/API_CONTRACT.md), [kiến trúc](docs/ARCHITECTURE.md) và [quy trình nhóm](docs/TEAM_WORKFLOW.md) trước khi viết chức năng. Không sửa public API một mình.
