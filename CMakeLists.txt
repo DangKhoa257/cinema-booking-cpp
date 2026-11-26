@@ -7,7 +7,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_library(cinema_core
     src/movie.cpp src/movie_catalog.cpp src/movie_details.cpp
-    src/movie_details_catalog.cpp src/seat.cpp src/cinema_room.cpp
+    src/movie_details_catalog.cpp src/cinema_v2.cpp src/seat.cpp src/cinema_room.cpp
     src/showtime.cpp src/schedule_manager.cpp src/user.cpp src/customer.cpp
     src/admin.cpp src/user_manager.cpp src/ticket.cpp src/payment.cpp
     src/demo_payment.cpp src/bank_transfer_payment.cpp src/file_storage.cpp
@@ -72,6 +72,14 @@ if(BUILD_TESTING)
     target_compile_definitions(test_movie_catalog_data PRIVATE
         MOVIE_DATA_FILE="${CMAKE_CURRENT_SOURCE_DIR}/data/v2/movie_details.txt")
     add_test(NAME test_movie_catalog_data COMMAND test_movie_catalog_data)
+
+    add_executable(test_cinema_v2 tests/test_cinema_v2.cpp)
+    target_link_libraries(test_cinema_v2 PRIVATE cinema_core)
+    target_compile_definitions(test_cinema_v2 PRIVATE
+        MOVIE_DATA_FILE="${CMAKE_CURRENT_SOURCE_DIR}/data/v2/movie_details.txt"
+        CINEMA_DATA_FILE="${CMAKE_CURRENT_SOURCE_DIR}/data/v2/cinema_demo.txt"
+        LEGACY_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data")
+    add_test(NAME test_cinema_v2 COMMAND test_cinema_v2)
 
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_schedule.cpp")
         add_executable(test_schedule tests/test_schedule.cpp)
