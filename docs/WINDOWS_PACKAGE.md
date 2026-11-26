@@ -11,7 +11,7 @@ ctest --test-dir build-qt-release --output-on-failure
 ./scripts/package_windows.ps1 -BuildDir build-qt-release -QtRoot C:/Qt/6.12.0/mingw_64 -MingwBin C:/Qt/Tools/mingw1310_64/bin
 ```
 
-Thư mục `dist/OOPCinema-Windows-x64` chứa `oop_cinema_qt.exe` (V2), `cinema_booking_qt.exe` (V1), DLL Qt/MinGW, plugin, `assets/` và `v2-data/`; ZIP là `dist/OOPCinema-Windows-x64.zip`. Script chạy thử V2 với PATH chỉ chứa thư mục Windows, rồi mới tạo ZIP. Không đưa source, thư mục build hoặc dữ liệu cá nhân vào ZIP. Workflow `windows-package.yml` lặp lại build, CTest và đóng gói trên Windows, xuất ZIP dưới dạng Actions artifact `OOPCinema-Windows-x64`. Không tạo GitHub Release.
+Thư mục `dist/OOPCinema-Windows-x64` chứa `oop_cinema_qt.exe` (V2), `cinema_booking_qt.exe` (V1), DLL Qt/MinGW, plugin, `assets/posters/`, `assets/snacks/` và `v2-data/`; ZIP là `dist/OOPCinema-Windows-x64.zip`. Script chạy thử V2 với PATH chỉ chứa thư mục Windows, rồi mới tạo ZIP. Không đưa source, thư mục build hoặc dữ liệu cá nhân vào ZIP. Workflow `windows-package.yml` lặp lại build, CTest và đóng gói trên Windows, xuất ZIP dưới dạng Actions artifact `OOPCinema-Windows-x64`. Không tạo GitHub Release.
 
 Giải nén toàn bộ ZIP trước khi mở `oop_cinema_qt.exe`; không chạy riêng exe khỏi thư mục DLL/plugin/assets/dữ liệu mẫu. Máy cần Windows x64 hỗ trợ Qt 6 tương ứng với bản đóng gói và runtime hệ thống tiêu chuẩn. Dữ liệu lưu ở AppData của người dùng hoặc thư mục chỉ định bằng `--data-dir`, không nằm trong ZIP. `cinema_booking_qt.exe` vẫn chạy giao diện V1.
 

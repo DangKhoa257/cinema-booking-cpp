@@ -65,6 +65,14 @@ if(BUILD_TESTING)
             ASSET_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}/qt/assets")
         add_test(NAME test_v2_qt_navigation COMMAND test_v2_qt_navigation)
         set_tests_properties(test_v2_qt_navigation PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+        add_executable(test_v2_qt_autosave tests/test_v2_qt_autosave.cpp)
+        target_link_libraries(test_v2_qt_autosave PRIVATE oop_cinema_ui)
+        target_compile_definitions(test_v2_qt_autosave PRIVATE
+            MOVIE_DATA_FILE="${CMAKE_CURRENT_SOURCE_DIR}/data/v2/movie_details.txt"
+            CINEMA_DATA_FILE="${CMAKE_CURRENT_SOURCE_DIR}/data/v2/cinema_demo.txt"
+            ASSET_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}/qt/assets")
+        add_test(NAME test_v2_qt_autosave COMMAND test_v2_qt_autosave)
+        set_tests_properties(test_v2_qt_autosave PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
         add_executable(test_qt_ui tests/test_qt_ui.cpp)
         target_link_libraries(test_qt_ui PRIVATE cinema_qt_ui)
         add_test(NAME test_qt_ui COMMAND test_qt_ui)

@@ -15,8 +15,8 @@
 #include <QRadioButton>
 #include <QScrollArea>
 #include <QScrollBar>
-#include <QSpinBox>
 #include <QVBoxLayout>
+#include <algorithm>
 
 namespace {
 QLabel* label(const QString& text, const QString& kind = {}) {
@@ -84,14 +84,9 @@ V2Window::V2Window(const QString& movieFile, const QString& cinemaFile,
     bar->addWidget(homeNav_);
     bar->addWidget(ticketsNav_);
     bar->addStretch();
-    auto* demo = label("TRẢI NGHIỆM DEMO", "demoBadge");
-    bar->addWidget(demo);
-    auto* saveButton = action("Lưu dữ liệu");
-    bar->addWidget(saveButton);
     outer->addWidget(header);
     connect(homeNav_, &QPushButton::clicked, this, [this] { showHome(); });
     connect(ticketsNav_, &QPushButton::clicked, this, [this] { showOrders(); });
-    connect(saveButton, &QPushButton::clicked, this, [this] { saveChanges(); });
 
     auto* scroll = new QScrollArea;
     scroll->setWidgetResizable(true);
@@ -113,7 +108,6 @@ V2Window::V2Window(const QString& movieFile, const QString& cinemaFile,
         QWidget#shell, QWidget#pageBody, QScrollArea#pageScroll {background:#fff8f0;color:#2d211d;}
         QFrame#topBar {background:#fff3e7;border-bottom:1px solid #edd1bb;}
         QLabel[kind="brand"] {font-size:22px;font-weight:900;letter-spacing:2px;color:#2d211d;}
-        QLabel[kind="demoBadge"] {color:#a65b2a;font-size:11px;font-weight:800;letter-spacing:1px;}
         QPushButton {background:#fff8f0;color:#593823;border:1px solid #ddb894;border-radius:9px;padding:10px 16px;font-weight:600;}
         QPushButton:hover {background:#ffead7;border-color:#df7d36;}
         QPushButton:disabled {color:#a99a8c;background:#f5eee7;border-color:#e4d9cd;}
@@ -127,11 +121,21 @@ V2Window::V2Window(const QString& movieFile, const QString& cinemaFile,
         QLabel[kind="muted"], QLabel[kind="seatLegend"] {color:#76655b;}
         QLabel[kind="price"] {font-size:20px;font-weight:800;color:#b94612;}
         QLabel[kind="bookingCode"] {font-size:21px;font-weight:900;color:#a64216;}
+        QLabel[kind="orderMovie"] {font-size:19px;font-weight:800;color:#2d211d;}
+        QLabel[kind="orderFact"] {font-size:14px;color:#624735;}
         QLabel[kind="status"] {background:#fcebd9;color:#69452c;padding:5px 28px;font-size:12px;}
         QLabel[kind="screen"] {background:#f7d9ba;color:#8e461e;border-bottom:3px solid #d9702e;border-radius:4px;padding:11px;letter-spacing:5px;font-weight:800;}
         QLabel[kind="rowLabel"] {color:#704b34;font-weight:800;}
         QFrame#panel, QWidget#ticketCard {background:#fffdf9;border:1px solid #ebd4bf;border-radius:17px;}
         QFrame#movieCard {background:#fffdf9;border:1px solid #ebd4bf;border-radius:13px;}
+        QFrame#snackCard {background:#fffdf9;border:1px solid #ebd4bf;border-radius:14px;}
+        QFrame#snackCard:hover {background:#fff8ef;border-color:#d8894f;}
+        QLabel[kind="snackName"] {font-size:17px;font-weight:800;color:#2d211d;}
+        QLabel[kind="snackContents"] {font-size:13px;color:#76655b;}
+        QLabel[kind="snackPrice"] {font-size:17px;font-weight:800;color:#bd4b15;}
+        QLabel[kind="snackCount"] {font-size:16px;font-weight:800;color:#2d211d;}
+        QPushButton[role="quantity"] {font-size:20px;font-weight:800;padding:0;background:#fff4e8;color:#a74312;}
+        QPushButton[role="quantity"]:hover {background:#ffddb9;}
         QLabel#posterImage {background:#f3e4d4;border-radius:9px;}
         QLabel[kind="cardTitle"] {font-size:16px;font-weight:800;color:#2d211d;margin-left:9px;margin-right:9px;}
         QLabel[kind="muted"] {margin-left:3px;}
@@ -143,7 +147,7 @@ V2Window::V2Window(const QString& movieFile, const QString& cinemaFile,
         QLabel#bannerFacts {font-size:14px;color:#6b4a36;}
         QLabel#bannerPoster {background:transparent;}
         QPushButton#bannerPrev, QPushButton#bannerNext {font-size:26px;padding:0;background:#fffaf4;}
-        QLineEdit, QComboBox, QSpinBox {background:#fffdf9;color:#33241d;border:1px solid #d9b99f;border-radius:8px;padding:9px;min-height:20px;}
+        QLineEdit, QComboBox {background:#fffdf9;color:#33241d;border:1px solid #d9b99f;border-radius:8px;padding:9px;min-height:20px;}
         QComboBox QAbstractItemView {background:#fffaf4;color:#33241d;selection-background-color:#ffddbd;}
         QPushButton[seatState="available"] {background:#ffe4cb;border-color:#d69b69;color:#563a29;padding:0;}
         QPushButton[seatState="vip"] {background:#f6b269;border-color:#cf641e;color:#4e240d;padding:0;}
@@ -338,6 +342,7 @@ void V2Window::showSeats(int showtimeId) {
     auto* summary = label("", "price");
     root->addWidget(summary);
     auto* next = action("Tiếp tục chọn bắp nước  →", true);
+    next->setObjectName("openSnacks");
     root->addWidget(next, 0, Qt::AlignRight);
     auto update = [this, map, summary, next, showtimeId] {
         seats_ = map->selected();
@@ -360,35 +365,90 @@ void V2Window::showSnacks() {
     auto* root = new QVBoxLayout(page);
     root->setSpacing(17);
     auto* back = action("← Đổi ghế");
+    back->setObjectName("backToSeats");
     connect(back, &QPushButton::clicked, this, [this] { showSeats(showtimeId_); });
     root->addWidget(back, 0, Qt::AlignLeft);
     root->addWidget(label("BẮP NƯỚC", "eyebrow"));
     root->addWidget(label("Thêm chút vị ngon cho buổi chiếu", "sectionTitle"));
     root->addWidget(label("Bạn có thể bỏ qua. Giá là dữ liệu mô phỏng của OOP Cinema.", "muted"));
     auto* total = label("", "price");
+    total->setObjectName("snack-total");
+    auto updateTotal = [this, total] {
+        long long tickets = 0;
+        for (const auto& seat : seats_)
+            tickets += session_.ticketPrice(showtimeId_, seat);
+        const long long food = session_.snackTotal(quantities_);
+        const long long discount = session_.discountFor(voucher_, tickets + food);
+        total->setText("Vé " + vnd(tickets) + "  +  Bắp nước " + vnd(food) +
+                       "  −  Ưu đãi " + vnd(discount) +
+                       "\nTổng đơn: " + vnd(tickets + food - discount));
+    };
     for (size_t i = 0; i < session_.snacks().size(); ++i) {
+        const SnackItem& item = session_.snacks()[i];
         auto* card = panel();
+        card->setObjectName("snackCard");
+        card->setProperty("snackId", item.id);
         auto* row = new QHBoxLayout(card);
-        row->setContentsMargins(20, 15, 20, 15);
-        const QString icon = i < 2 ? "🍿" : i < 4 ? "🥤" : "🎟";
-        row->addWidget(label(icon + "  " + session_.snacks()[i].name));
-        row->addStretch();
-        row->addWidget(label(vnd(session_.snacks()[i].price), "price"));
-        auto* quantity = new QSpinBox;
-        quantity->setRange(0, 9);
-        quantity->setValue(quantities_[i]);
-        quantity->setAccessibleName("Số lượng " + session_.snacks()[i].name);
-        row->addWidget(quantity);
-        connect(quantity, QOverload<int>::of(&QSpinBox::valueChanged), this,
-                [this, i, total](int value) {
-            quantities_[i] = value;
-            total->setText("Bắp nước: " + vnd(session_.snackTotal(quantities_)));
-        });
+        row->setContentsMargins(12, 8, 14, 8);
+        row->setSpacing(14);
+        auto* photo = new QLabel;
+        photo->setObjectName(QString("snack-image-%1").arg(item.id));
+        photo->setFixedSize(116, 116);
+        photo->setAlignment(Qt::AlignCenter);
+        const QPixmap image(QDir(assets_).filePath(item.imageFile));
+        if (image.isNull()) photo->setText("Ảnh không tải được");
+        else photo->setPixmap(image.scaled(photo->size(), Qt::KeepAspectRatio,
+                                            Qt::SmoothTransformation));
+        row->addWidget(photo);
+        auto* info = new QWidget;
+        auto* words = new QVBoxLayout(info);
+        words->setContentsMargins(0, 0, 0, 0);
+        words->setSpacing(5);
+        auto* name = label(item.name, "snackName");
+        name->setObjectName(QString("snack-name-%1").arg(item.id));
+        words->addWidget(name);
+        auto* contents = label(item.contents, "snackContents");
+        contents->setObjectName(QString("snack-contents-%1").arg(item.id));
+        words->addWidget(contents);
+        auto* price = label(vnd(item.price), "snackPrice");
+        price->setObjectName(QString("snack-price-%1").arg(item.id));
+        words->addWidget(price);
+        row->addWidget(info, 1);
+        auto* controls = new QHBoxLayout;
+        controls->setSpacing(5);
+        auto* minus = action("−");
+        auto* plus = action("+");
+        auto* count = label(QString::number(quantities_[i]), "snackCount");
+        minus->setObjectName(QString("snack-minus-%1").arg(item.id));
+        plus->setObjectName(QString("snack-plus-%1").arg(item.id));
+        count->setObjectName(QString("snack-count-%1").arg(item.id));
+        minus->setProperty("role", "quantity");
+        plus->setProperty("role", "quantity");
+        minus->setFixedSize(40, 40);
+        plus->setFixedSize(40, 40);
+        count->setFixedWidth(28);
+        count->setAlignment(Qt::AlignCenter);
+        minus->setEnabled(quantities_[i] > 0);
+        plus->setEnabled(quantities_[i] < 9);
+        controls->addWidget(minus);
+        controls->addWidget(count);
+        controls->addWidget(plus);
+        row->addLayout(controls);
+        auto change = [this, i, minus, plus, count, updateTotal](int step) {
+            quantities_[i] = std::max(0, std::min(9, quantities_[i] + step));
+            count->setText(QString::number(quantities_[i]));
+            minus->setEnabled(quantities_[i] > 0);
+            plus->setEnabled(quantities_[i] < 9);
+            updateTotal();
+        };
+        connect(minus, &QPushButton::clicked, this, [change] { change(-1); });
+        connect(plus, &QPushButton::clicked, this, [change] { change(1); });
         root->addWidget(card);
     }
-    total->setText("Bắp nước: " + vnd(session_.snackTotal(quantities_)));
+    updateTotal();
     root->addWidget(total);
     auto* next = action("Tiếp tục thanh toán  →", true);
+    next->setObjectName("openCheckout");
     connect(next, &QPushButton::clicked, this, [this] { showCheckout(); });
     root->addWidget(next, 0, Qt::AlignRight);
     setContent(page, "snacks");
@@ -407,6 +467,7 @@ void V2Window::showCheckout() {
     auto* root = new QVBoxLayout(page);
     root->setSpacing(17);
     auto* back = action("← Bắp nước");
+    back->setObjectName("backToSnacks");
     connect(back, &QPushButton::clicked, this, [this] { showSnacks(); });
     root->addWidget(back, 0, Qt::AlignLeft);
     root->addWidget(label("KIỂM TRA & THANH TOÁN", "eyebrow"));
@@ -414,10 +475,10 @@ void V2Window::showCheckout() {
     auto* orderPanel = panel();
     auto* orderLayout = new QVBoxLayout(orderPanel);
     orderLayout->setContentsMargins(22, 20, 22, 20);
-    orderLayout->addWidget(label(titleOf(movie)));
+    orderLayout->addWidget(label(titleOf(movie), "orderMovie"));
     orderLayout->addWidget(label((branch ? QString::fromStdString(branch->name) : "") +
-                                  "  •  " + longDate(show->getStartTime())));
-    orderLayout->addWidget(label("Ghế " + joinSeats(seats_)));
+                                  "  •  " + longDate(show->getStartTime()), "orderFact"));
+    orderLayout->addWidget(label("Ghế " + joinSeats(seats_), "orderFact"));
     root->addWidget(orderPanel);
     root->addWidget(label("THÔNG TIN NGƯỜI MUA — KHÔNG CẦN TÀI KHOẢN", "eyebrow"));
     auto* name = new QLineEdit; name->setPlaceholderText("Họ và tên");
@@ -452,6 +513,7 @@ void V2Window::showCheckout() {
     root->addWidget(payNow); root->addWidget(pending);
     root->addWidget(label("Không có giao dịch ngân hàng thật. Chuyển khoản không tự xác nhận.", "muted"));
     auto* confirm = action("Xác nhận đặt vé  →", true);
+    confirm->setObjectName("confirmCheckout");
     connect(confirm, &QPushButton::clicked, this,
             [this, name, phone, email, payNow, total, confirmation] {
         if (QMessageBox::question(this, "Xác nhận đặt vé",
@@ -467,7 +529,9 @@ void V2Window::showCheckout() {
             showSeats(showtimeId_);
             return;
         }
-        status_->setText("Đã tạo đơn " + code + ". Chọn Lưu dữ liệu để giữ đơn qua lần chạy sau.");
+        const bool saved = saveChanges();
+        status_->setText(saved ? "Đã tạo và lưu đơn " + code + "." :
+                          "Đơn " + code + " chỉ đang ở bộ nhớ; chưa lưu được. Vui lòng kiểm tra lỗi.");
         showTicket(code);
     });
     root->addWidget(confirm, 0, Qt::AlignRight);
@@ -490,27 +554,35 @@ void V2Window::showTicket(const QString& code) {
     auto* buttons = new QHBoxLayout;
     auto* pay = action("Thanh toán demo", true);
     auto* cancel = action("Hủy vé");
-    auto* save = action("Lưu dữ liệu");
+    pay->setObjectName("payOrder");
+    cancel->setObjectName("cancelOrder");
     const bool isPending = state == "Đang chờ thanh toán";
     const bool isCancelled = state == "Đã hủy";
     pay->setEnabled(isPending);
     cancel->setEnabled(!isCancelled);
-    buttons->addWidget(pay); buttons->addWidget(cancel); buttons->addWidget(save);
+    buttons->addWidget(pay); buttons->addWidget(cancel);
     buttons->addStretch();
     root->addLayout(buttons);
     connect(pay, &QPushButton::clicked, this, [this, code] {
         if (!session_.pay(code)) QMessageBox::warning(this, "Thanh toán", session_.error());
-        else status_->setText("Thanh toán demo thành công. Hãy lưu dữ liệu.");
+        else {
+            const bool saved = saveChanges();
+            status_->setText(saved ? "Thanh toán mô phỏng đã hoàn tất và lưu." :
+                              "Vé đã chuyển Paid trong bộ nhớ nhưng chưa lưu được.");
+        }
         showTicket(code);
     });
     connect(cancel, &QPushButton::clicked, this, [this, code] {
         if (QMessageBox::question(this, "Hủy vé", "Hủy toàn bộ vé trong đơn " + code + "?")
             != QMessageBox::Yes) return;
         if (!session_.cancel(code)) QMessageBox::warning(this, "Hủy vé", session_.error());
-        else status_->setText("Đã hủy đơn. Các ghế đã trở lại trạng thái trống.");
+        else {
+            const bool saved = saveChanges();
+            status_->setText(saved ? "Đã hủy và lưu đơn. Ghế đã trở lại trạng thái trống." :
+                              "Đơn đã hủy trong bộ nhớ nhưng chưa lưu được.");
+        }
         showTicket(code);
     });
-    connect(save, &QPushButton::clicked, this, [this] { saveChanges(); });
     auto* more = action("Xem tất cả vé  →");
     connect(more, &QPushButton::clicked, this, [this] { showOrders(); });
     root->addWidget(more, 0, Qt::AlignLeft);
@@ -522,7 +594,7 @@ void V2Window::showOrders() {
     auto* root = new QVBoxLayout(page);
     root->setSpacing(15);
     root->addWidget(label("VÉ CỦA TÔI", "eyebrow"));
-    root->addWidget(label("Các đơn đã đặt trong phiên này", "sectionTitle"));
+    root->addWidget(label("Các đơn đã đặt", "sectionTitle"));
     if (session_.orders().empty()) {
         root->addWidget(label("Chưa có vé. Hãy chọn một phim để bắt đầu.", "muted"));
     }
@@ -555,17 +627,11 @@ bool V2Window::saveChanges() {
         QMessageBox::warning(this, "Lưu thất bại", session_.error());
         return false;
     }
-    status_->setText("Đã lưu dữ liệu tại " + session_.storageDirectory());
     return true;
 }
 
 void V2Window::closeEvent(QCloseEvent* event) {
     if (!session_.dirty()) { event->accept(); return; }
-    const auto choice = QMessageBox::warning(this, "Dữ liệu chưa lưu",
-        "Bạn có thay đổi chưa lưu. Lưu trước khi thoát?",
-        QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel,
-        QMessageBox::Save);
-    if (choice == QMessageBox::Cancel) event->ignore();
-    else if (choice == QMessageBox::Save && !saveChanges()) event->ignore();
-    else event->accept();
+    if (saveChanges()) event->accept();
+    else event->ignore();
 }

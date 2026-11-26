@@ -4,12 +4,14 @@
 #include <QApplication>
 #include <QDir>
 #include <QFile>
+#include <QFrame>
 #include <QImage>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QLabel>
 #include <QPushButton>
+#include <QSpinBox>
 #include <QTemporaryDir>
 #include <iostream>
 #include <stdexcept>
@@ -79,6 +81,50 @@ int main(int argc, char* argv[]) {
         seat->click();
         auto* map = static_cast<SeatMapWidget*>(window.findChild<QWidget*>("seatMap"));
         require(map && map->selected().count("A1") == 1, "selection flows to seat map");
+        auto* openSnacks = window.findChild<QPushButton*>("openSnacks");
+        require(openSnacks && openSnacks->isEnabled(), "snack step is available");
+        openSnacks->click();
+        app.processEvents();
+        require(window.findChildren<QFrame*>("snackCard").size() == 5,
+                "exactly five horizontal snack cards");
+        require(window.findChildren<QSpinBox*>().isEmpty(), "no spinbox quantity arrows");
+        for (const auto& item : window.session().snacks()) {
+            const QString id = QString::number(item.id);
+            auto* photo = window.findChild<QLabel*>("snack-image-" + id);
+            auto* name = window.findChild<QLabel*>("snack-name-" + id);
+            auto* contents = window.findChild<QLabel*>("snack-contents-" + id);
+            auto* price = window.findChild<QLabel*>("snack-price-" + id);
+            auto* minus = window.findChild<QPushButton*>("snack-minus-" + id);
+            auto* plus = window.findChild<QPushButton*>("snack-plus-" + id);
+            const QImage product(QDir(QString::fromUtf8(ASSET_DIRECTORY)).filePath(item.imageFile));
+            require(photo && !photo->pixmap().isNull() && product.width() >= 300 &&
+                    product.height() >= 300 && name && name->text() == item.name &&
+                    contents && contents->text() == item.contents &&
+                    price && price->text() == vnd(item.price) &&
+                    minus && !minus->isEnabled() && plus && plus->isEnabled(),
+                    "snack photo, metadata, price and initial controls");
+        }
+        auto* plusPopcorn = window.findChild<QPushButton*>("snack-plus-1");
+        auto* minusPopcorn = window.findChild<QPushButton*>("snack-minus-1");
+        auto* plusCombo = window.findChild<QPushButton*>("snack-plus-3");
+        plusPopcorn->click(); plusPopcorn->click(); plusCombo->click();
+        auto* snackTotal = window.findChild<QLabel*>("snack-total");
+        require(window.findChild<QLabel*>("snack-count-1")->text() == "2" &&
+                snackTotal && snackTotal->text().contains("259.000"),
+                "plus updates quantities and order total");
+        minusPopcorn->click();
+        require(window.findChild<QLabel*>("snack-count-1")->text() == "1" &&
+                snackTotal->text().contains("214.000"), "minus updates order total");
+        window.findChild<QPushButton*>("openCheckout")->click();
+        app.processEvents();
+        window.findChild<QPushButton*>("backToSnacks")->click();
+        app.processEvents();
+        require(window.findChild<QLabel*>("snack-count-1")->text() == "1" &&
+                window.findChild<QLabel*>("snack-count-3")->text() == "1" &&
+                window.findChild<QLabel*>("snack-total")->text().contains("214.000"),
+                "snack selection survives page navigation");
+        for (auto* button : window.findChildren<QPushButton*>())
+            require(!button->text().contains("Lưu dữ liệu"), "no manual save button");
         window.resize(1120, 760);
         app.processEvents();
         require(window.isVisible(), "resized GUI stays visible");
