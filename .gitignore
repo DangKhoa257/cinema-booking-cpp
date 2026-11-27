@@ -2,7 +2,26 @@
 /build-*/
 /dist/
 /.vs/
+
+# Generated CMake and compiler output outside the usual build folders
+**/CMakeFiles/
+**/CMakeCache.txt
+**/cmake_install.cmake
+**/build.ninja
+**/.ninja_*
 *.obj
 *.o
 *.exe
 *.pdb
+*.dll
+*.lib
+*.a
+*.so
+*.dylib
+
+# Local logs, temporary files and root-level release archives
+*.log
+*.tmp
+*.temp
+*.swp
+/*.zip
